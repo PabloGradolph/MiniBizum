@@ -1,0 +1,89 @@
+/* Estilos generales */
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background-color: #353535;
+}
+
+.wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+header {
+    background-color: lightblue;
+}
+
+.header-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.logo-btn {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    color: #fff;
+    font-size: 1.5em;
+    cursor: pointer;
+    text-decoration: none;
+    border-radius: 10px;
+}
+
+.logo-btn:hover {
+    background-color: #f1f1f1;
+    color: #555; 
+}
+
+header nav {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    padding-bottom: 20px;
+}
+
+header nav a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 1.1em;
+    font-weight: bold;
+    margin: 5px;
+}
+
+header nav a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (min-width:720px) {
+    header {
+        position: fixed;
+        width: 100%;
+        z-index: 1;
+    }
+
+    .header-container {
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 10px;
+    }
+
+    header nav {
+        flex-direction: row;
+        padding-bottom: 0px;
+        padding-right: 20px;
+    }
+
+    header nav a {
+        margin-right: 25px;
+    }
+}

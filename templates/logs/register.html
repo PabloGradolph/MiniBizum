@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Registro{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/logs.css' %}">
+{% endblock %}
+
+{% block header %}
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <a href="{% url 'home' %}" id="change" class="logo-btn">
+                    MiniBizum
+                </a>
+            </div>
+            <nav>
+                <a href="#">Mi perfil</a>
+                <a href="#">Quienes Somos</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'logout' %}">Cerrar Sesión</a>
+                {% else %}
+                    <a href="{% url 'login' %}">Iniciar Sesión</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+{% endblock %}
+
+{% block content %}
+    <div class="form-container">
+        <h2>Registro de Usuario</h2>
+        <form method="POST">
+            <p>{{ error }}</p>
+            {% csrf_token %}
+            <div>
+                {{ form.as_p }}
+            </div>
+            <div class="center">
+                <button type="submit" class="btn-primary">Registrarse</button>
+            </div>
+        </form>
+        <p class="register-text">¿Ya tienes una cuenta? <a href="{% url 'login' %}">Iniciar sesión</a></p>
+    </div>
+{% endblock %}
