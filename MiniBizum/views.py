@@ -1,15 +1,17 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import CustomUserCreationForm
-from django.db import IntegrityError
+from .algorythims import make_password, check_password
 import re
 import hashlib
 import secrets
 
 
+@login_required(login_url='login')
 def main(request):
     return render(request, 'main.html', {})
 
@@ -87,32 +89,3 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
-
-
-def make_password(password):
-    # Generamos un salt aleatorio: Evita ciertos ataques
-    secure_salt = secrets.token_hex(16)
-    salted_password = password + secure_salt
-
-    # Calculamos el has de la contraseña combinada.
-    hashed_password = hashlib.sha256(salted_password.encode()).hexdigest()
-
-    # Devolvemos el hash y el salt, para que ambos puedan ser almacenados.
-    return f"{hashed_password}${secure_salt}" # Nota: almacenamos ambos en una sola cadena para conveniencia.
-
-
-def check_password(stored_password, user_input_password):
-    # Dividimos el hash y el salt.
-    parts = stored_password.split("$")
-    if len(parts) != 2:
-        raise ValueError("La contraseña almacenada tiene un formato incorrecto.")
-    
-    hashed_password = parts[0]
-    secure_salt = parts[1]
-
-    # Repetimos el proceso de hashing en la contraseña que el usuario ha ingresado para autenticarse.
-    salted_password = user_input_password + secure_salt
-    calculated_hash = hashlib.sha256(salted_password.encode()).hexdigest()
-
-    # Si los hashes coinciden, la contraseña es correcta.
-    return hashed_password == calculated_hash
