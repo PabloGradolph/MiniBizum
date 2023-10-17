@@ -5,7 +5,7 @@ from django.db import IntegrityError
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import CustomUserCreationForm
-from .algorythims import make_password, check_password
+from .algorithms import make_password, check_password
 import re
 import hashlib
 import secrets
