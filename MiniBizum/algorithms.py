@@ -2,9 +2,6 @@ import secrets
 import os
 import base64
 import hashlib
-import smtplib
-from Crypto.Cipher import AES
-from Crypto.PublicKey import RSA
 
 
 def make_password(password: str) -> str:
