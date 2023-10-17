@@ -1,5 +1,10 @@
 import secrets
+import os
+import base64
 import hashlib
+import smtplib
+from Crypto.Cipher import AES
+from Crypto.PublicKey import RSA
 
 
 def make_password(password: str) -> str:
@@ -11,7 +16,7 @@ def make_password(password: str) -> str:
     hashed_password = hashlib.sha256(salted_password.encode()).hexdigest()
 
     # Devolvemos el hash y el salt, para que ambos puedan ser almacenados.
-    return f"{hashed_password}${secure_salt}" # Nota: almacenamos ambos en una sola cadena para conveniencia.
+    return f"{hashed_password}${secure_salt}"  # Nota: almacenamos ambos en una sola cadena para conveniencia.
 
 
 def check_password(stored_password: str, user_input_password: str) -> bool:
@@ -19,7 +24,7 @@ def check_password(stored_password: str, user_input_password: str) -> bool:
     parts = stored_password.split("$")
     if len(parts) != 2:
         raise ValueError("La contraseña almacenada tiene un formato incorrecto.")
-    
+
     hashed_password = parts[0]
     secure_salt = parts[1]
 
