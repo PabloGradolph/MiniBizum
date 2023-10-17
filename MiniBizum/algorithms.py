@@ -7,7 +7,7 @@ def make_password(password: str) -> str:
     secure_salt = secrets.token_hex(16)
     salted_password = password + secure_salt
 
-    # Calculamos el has de la contraseña combinada.
+    # Calculamos el hash de la contraseña combinada.
     hashed_password = hashlib.sha256(salted_password.encode()).hexdigest()
 
     # Devolvemos el hash y el salt, para que ambos puedan ser almacenados.
