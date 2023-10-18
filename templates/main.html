@@ -1,38 +1,37 @@
+{% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MiniBizum! | Inicio</title>
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-</head>
-<body>
-    <div class="wrapper">
-        <!-- Header -->
-        <header>
-            <nav>
-                <div class='nav-left'>
-                    <img src="{% static 'images/logo.png' %}" alt='Logo' class='logo'>
-                    <ul>
-                        <li><img src="{% static 'images/notification.png' %}"></li>
-                        <li><img src="{% static 'images/inbox.png' %}"></li>
-                        <li><img src="{% static 'images/video.png' %}"></li>
-                    </ul>
-                </div>
-                <div class='nav-rigth'></div>
-            </nav>
-        </header>
-        
+{% block title %}
+Inicio
+{% endblock %}
 
-        <!-- Main Content -->
-        <main>
-        </main>
+{% block styles %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
+{% endblock %}
+
+{% block header %}
+<header>
+    <div class="header-container">
+        <div class="logo">
+            <a href="{% url 'home' %}" id="change" class="logo-btn">
+                MiniBizum
+            </a>
+        </div>
+        <nav>
+            <a href="#">Mi perfil</a>
+            <a href="#">Quienes Somos</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}">Cerrar Sesión</a>
+            {% else %}
+                <a href="{% url 'login' %}">Iniciar Sesión</a>
+            {% endif %}
+        </nav>
     </div>
-<!-- Footer -->
-<footer>  
-    <div class="container"></div>
-</footer>
-</body>
-</html>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+</div>
+{% endblock content %}

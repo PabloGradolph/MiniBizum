@@ -66,11 +66,12 @@ form .helptext {
 
 /* Enlace a la página de registro */
 .form-container a {
-    color: #008037;
+    color: rgb(146, 206, 225);
     text-align: center;
     display: block;
     margin-top: 10px;
     text-decoration: none;
+    font-weight: bold;
 }
 
 .form-container .center {
