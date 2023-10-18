@@ -49,15 +49,9 @@ def signup_view(request):
                     user.is_superuser = False
                     user.is_staff = False
 
-<<<<<<< HEAD
                     # Ciframos la contraseña
                     user.password = hasher.encode(password=password1)
 
-=======
-                    # Ciframos la contraseña con la funcion que hemos creado.
-                    user.password = make_password(password=password1)
-                    # Guardamos los datos del usuario en la BD.
->>>>>>> 075ca299a4b05dc71abbcd36a66b1681b1fd3da1
                     user.save()
                     login(request, user)
                     return redirect('home')
