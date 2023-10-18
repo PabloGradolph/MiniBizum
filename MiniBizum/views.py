@@ -5,10 +5,8 @@ from django.db import IntegrityError
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import CustomUserCreationForm
-from .algorithms import make_password, check_password
+from .my_hasher import MyPasswordHasher
 import re
-import hashlib
-import secrets
 
 
 @login_required(login_url='login')
@@ -41,6 +39,7 @@ def signup_view(request):
                     return render(request, 'logs/register.html',
                                   {'form': form, 'error': 'El email ya está registrado.'})
                 try:
+                    hasher = MyPasswordHasher()
                     user = User()
                     user.username = username
                     user.email = email
@@ -48,7 +47,7 @@ def signup_view(request):
                     user.is_staff = False
 
                     # Ciframos la contraseña
-                    user.password = make_password(password=password1)
+                    user.password = hasher.encode(password=password1)
 
                     user.save()
                     login(request, user)
@@ -78,7 +77,8 @@ def login_view(request):
 
         # Si el usuario existe, procedemos a verificar la contraseña.
         stored_password = user.password
-        if check_password(stored_password, password):
+        hasher = MyPasswordHasher()
+        if hasher.verify(password, stored_password):
             # Autenticamos al usuario si la contraseña es correcta.
             user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
