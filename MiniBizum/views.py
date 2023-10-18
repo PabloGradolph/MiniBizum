@@ -11,7 +11,10 @@ import re
 
 @login_required(login_url='login')
 def main(request):
-    return render(request, 'main.html', {})
+    if request.user.is_authenticated:
+        return render(request, 'main.html', {})
+    else:
+        return render(request, '/logs/login.html', {})
 
 
 def signup_view(request):
@@ -30,7 +33,7 @@ def signup_view(request):
 
         # Gestión de errores.
         if len(username) > 35:
-            return render(request, 'logs/register.html',
+            return render(request, '/logs/register.html',
                           {'form': form, 'error': 'El nombre de usuario es demasiado largo.'})
 
         if password1 == password2:
@@ -46,9 +49,15 @@ def signup_view(request):
                     user.is_superuser = False
                     user.is_staff = False
 
+<<<<<<< HEAD
                     # Ciframos la contraseña
                     user.password = hasher.encode(password=password1)
 
+=======
+                    # Ciframos la contraseña con la funcion que hemos creado.
+                    user.password = make_password(password=password1)
+                    # Guardamos los datos del usuario en la BD.
+>>>>>>> 075ca299a4b05dc71abbcd36a66b1681b1fd3da1
                     user.save()
                     login(request, user)
                     return redirect('home')
@@ -70,7 +79,7 @@ def login_view(request):
         # Comprobamos si el usuario existe en la base de datos.
         try:
             user = User.objects.get(username=username)
-        except User.DoesNotExist:
+        except User.DoesNotExist:  # TODO Hacer que salte error si el usuario no existe
             return render(request, 'logs/login.html', {'form': AuthenticationForm,
                                                        'error': 'Usuario no encontrado'}
                           )

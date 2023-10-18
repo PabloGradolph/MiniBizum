@@ -5,7 +5,8 @@ import hashlib
 
 
 def make_password(password: str) -> str:
-    # Generamos un salt aleatorio: Evita ciertos ataques
+    # Generamos un salt aleatorio: Evita ciertos ataques y que dos usuarios con la misma contraseña tengan el
+    # mismo hash.
     secure_salt = secrets.token_hex(16)
     salted_password = password + secure_salt
 
@@ -22,6 +23,7 @@ def check_password(stored_password: str, user_input_password: str) -> bool:
     if len(parts) != 2:
         raise ValueError("La contraseña almacenada tiene un formato incorrecto.")
 
+    # Obtenemos el hash y el salt.
     hashed_password = parts[0]
     secure_salt = parts[1]
 
