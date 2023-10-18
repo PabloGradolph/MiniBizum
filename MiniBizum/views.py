@@ -74,7 +74,7 @@ def login_view(request):
         # Comprobamos si el usuario existe en la base de datos.
         try:
             user = User.objects.get(username=username)
-        except User.DoesNotExist:
+        except User.DoesNotExist:  # TODO Hacer que salte error si el usuario no existe
             return render(request, 'logs/login.html', {'form': AuthenticationForm,
                                                        'error': 'Usuario no encontrado'}
                           )
