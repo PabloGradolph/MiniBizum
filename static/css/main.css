@@ -7,3 +7,35 @@
 body {
     background: #efefef;
 }
+
+.center-content {
+    text-align: center; /* Centra el contenido horizontalmente */
+    margin: auto; /* Centra el contenido verticalmente */
+    width: 50%; /* Define un ancho para el contenedor */
+    max-width: 400px; /* Establece un ancho máximo para el contenido */
+    padding: 20px; /* Añade un espacio alrededor del contenido */
+    background-color: #f5f5f5; /* Fondo de color gris claro */
+    border: 1px solid #ddd; /* Borde del contenedor */
+    border-radius: 10px; /* Borde redondeado */
+}
+
+.action-buttons {
+    margin-top: 20px; /* Espacio entre el párrafo y los botones */
+}
+
+.btn-login, .btn-register {
+    display: block; /* Hace que los botones ocupen toda la anchura del contenedor */
+    width: 100%; /* Ancho completo */
+    padding: 10px; /* Espacio interno */
+    margin-bottom: 10px; /* Espacio entre los botones */
+    background-color: #007bff; /* Fondo azul */
+    color: #fff; /* Texto blanco */
+    text-align: center; /* Texto centrado horizontalmente */
+    text-decoration: none; /* Sin subrayado en los enlaces */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Borde redondeado */
+}
+
+.btn-login:hover, .btn-register:hover {
+    background-color: #0056b3; /* Color de fondo al pasar el mouse */
+}

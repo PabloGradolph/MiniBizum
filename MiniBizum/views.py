@@ -13,7 +13,10 @@ import secrets
 
 @login_required(login_url='login')
 def main(request):
-    return render(request, 'main.html', {})
+    if request.user.is_authenticated:
+        return render(request, 'main.html', {})
+    else:
+        return render(request, '/logs/login.html', {})
 
 
 def signup_view(request):
@@ -32,7 +35,7 @@ def signup_view(request):
 
         # Gestión de errores.
         if len(username) > 35:
-            return render(request, 'logs/register.html',
+            return render(request, '/logs/register.html',
                           {'form': form, 'error': 'El nombre de usuario es demasiado largo.'})
 
         if password1 == password2:
@@ -47,9 +50,9 @@ def signup_view(request):
                     user.is_superuser = False
                     user.is_staff = False
 
-                    # Ciframos la contraseña
+                    # Ciframos la contraseña con la funcion que hemos creado.
                     user.password = make_password(password=password1)
-
+                    # Guardamos los datos del usuario en la BD.
                     user.save()
                     login(request, user)
                     return redirect('home')
