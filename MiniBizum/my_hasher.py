@@ -18,6 +18,7 @@ class MyPasswordHasher(BasePasswordHasher):
         Toma una contraseña en texto plano y un salt, y devuelve la contraseña hasheada.
         """
         # Usamos tu método de creación de contraseña, que internamente genera un hash y concatena el salt.
+        salt = self.salt()
         salted_password = password + salt
         hashed_password = hashlib.sha256(salted_password.encode()).hexdigest()
         # Devolvemos esto en el formato que Django espera.
