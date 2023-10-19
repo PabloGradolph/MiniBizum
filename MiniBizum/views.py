@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import CustomUserCreationForm
 from .my_hasher import MyPasswordHasher
+from cryptography.fernet import Fernet
 import re
 
 
@@ -30,11 +31,19 @@ def signup_view(request):
         email = request.POST['email']
         password1 = request.POST['password1']
         password2 = request.POST['password2']
-
+        phone = request.POST['phone']
+        # Abre el archivo en modo lectura y lee su contenido
+        with open('MiniBizum/project_key.txt', 'rb') as archivo:
+            key = archivo.read()
+        print(key)
         # Gestión de errores.
         if len(username) > 35:
             return render(request, '/logs/register.html',
                           {'form': form, 'error': 'El nombre de usuario es demasiado largo.'})
+
+        if len(phone) != 9:
+            return render(request, '/logs/register.html',
+                          {'form': form, 'error': 'Introduce un número de teléfono válido.'})
 
         if password1 == password2:
             if re.match(r'^[a-zA-Z]+$', username):
@@ -44,8 +53,10 @@ def signup_view(request):
                 try:
                     hasher = MyPasswordHasher()
                     user = User()
+                    cipher_suite = Fernet(key)
                     user.username = username
-                    user.email = email
+                    user.phone = cipher_suite.encrypt(phone.encode())
+                    user.email = cipher_suite.encrypt(email.encode())
                     user.is_superuser = False
                     user.is_staff = False
 
