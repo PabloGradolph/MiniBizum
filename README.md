@@ -20,7 +20,6 @@ En cuanto a las funcionalidades, observamos las siguientes:
 - **Registro de usuarios:** El usuario se registra en la aplicación con su nombre, apellidos, email, y contraseña. Los cuales estan cifrados para proteger la información del usuario y evitar posibles ataques.
 
 # Prueba el Proyecto 🚀
-
 1. Clona el repositorio: `git clone https://github.com/PabloGradolph/SciencesPath.git`
 2. Instala las dependencias necesarias: `pip install -r requirements.txt`
 3. Configura los ajustes de tu base de datos en `settings.py` (Puedes usar la configuración que viene por defecto con sqlite3)
