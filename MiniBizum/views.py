@@ -29,9 +29,6 @@ def signup_view(request):
         password1 = request.POST['password1']
         password2 = request.POST['password2']
         phone = request.POST['phone']
-        # Abre el archivo en modo lectura y lee su contenido
-        with open('MiniBizum/project_key.txt', 'rb') as archivo:
-            key = archivo.read()
         
         # Gestión de errores.
         if len(username) > 35:
