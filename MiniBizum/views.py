@@ -50,8 +50,7 @@ def signup_view(request):
                     user.is_staff = False
 
                     # Ciframos la contraseña
-                    user.password = hasher.encode(password=password1)
-
+                    user.password = hasher.encode(password1, None)
                     user.save()
                     login(request, user)
                     return redirect('home')
