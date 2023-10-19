@@ -3,29 +3,32 @@
     width: 350px;
     margin: 100px auto;
     padding: 20px;
-    background-color: #fff;
+    background-color: #ffffff;
     border: 2px solid #1f1e1e;
     border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-family: 'Arial', sans-serif;
 }
 
 /* Título del formulario */
 .form-container h2 {
-    color: #353535;
+    color: #333;
     text-align: center;
     margin-bottom: 20px;
+    font-size: 24px;
 }
 
+/* Párrafos del formulario */
 form p {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 form .helptext {
     font-size: 14px;
-    color: #353535;
+    color: #666;
     text-align: center;
 }
 
@@ -37,41 +40,56 @@ form .helptext {
 }
 
 .form-container label {
-    color: #444654;
+    color: #555;
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
 }
 
 .form-container input[type="email"],
 .form-container input[type="text"],
 .form-container input[type="password"] {
-    color: #000;
-    padding: 10px;
+    color: #333;
+    padding: 12px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    margin-bottom: 10px;
-    width: 80%;
+    margin-bottom: 20px;
+    width: 100%;
+    font-size: 16px;
 }
 
 .btn-primary {
-    font-size: 0.9em;
+    font-size: 18px;
+    background-color: #007bff;
+    color: #fff;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
 }
 
 /* Mensaje de error */
-.form-container p {
+.form-container p.error-message {
     text-align: center;
-    margin-top: 10px;
-    color: #000;
+    margin-top: 20px;
+    color: #d9534f;
+    font-weight: bold;
 }
 
 /* Enlace a la página de registro */
 .form-container a {
-    color: rgb(146, 206, 225);
+    color: #22a7f0;
     text-align: center;
     display: block;
-    margin-top: 10px;
+    margin-top: 20px;
     text-decoration: none;
     font-weight: bold;
+    font-size: 16px;
 }
 
 .form-container .center {
@@ -83,14 +101,13 @@ form .helptext {
     display: flex;
     justify-content: center;
     align-items: center;
+    margin-top: 20px;
 }
 
 .form-container .register-text a {
     margin-left: 5px;
-    margin-bottom: 0; 
-    margin-top: 0; 
 }
 
-.form-container .register-text a:hover{
+.form-container .register-text a:hover {
     text-decoration: underline;
 }
