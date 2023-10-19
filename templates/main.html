@@ -32,6 +32,11 @@ Inicio
 {% endblock %}
 
 {% block content %}
-<div class="container">   
+<div class="container">
+    <p>Nombre de usuario: {{ request.user.username }}</p>
+    <p>Email: {{ request.user.email }}</p>
+    <p>Teléfono: {{ request.user.profile.phone_number }}</p>
+    <p>Biografía: {{ request.user.profile.bio }}</p>
+    <img class="profile-image" src="{{ request.user.profile.image.url }}" alt="Imagen del perfile">
 </div>
 {% endblock content %}

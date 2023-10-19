@@ -6,16 +6,13 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import CustomUserCreationForm
 from .my_hasher import MyPasswordHasher
-from cryptography.fernet import Fernet
+from .algorithms import encrypt_data
 import re
 
 
 @login_required(login_url='login')
 def main(request):
-    if request.user.is_authenticated:
-        return render(request, 'main.html', {})
-    else:
-        return render(request, '/logs/login.html', {})
+    return render(request, 'main.html', {})
 
 
 def signup_view(request):
@@ -35,7 +32,7 @@ def signup_view(request):
         # Abre el archivo en modo lectura y lee su contenido
         with open('MiniBizum/project_key.txt', 'rb') as archivo:
             key = archivo.read()
-        print(key)
+        
         # Gestión de errores.
         if len(username) > 35:
             return render(request, '/logs/register.html',
@@ -53,18 +50,23 @@ def signup_view(request):
                 try:
                     hasher = MyPasswordHasher()
                     user = User()
-                    cipher_suite = Fernet(key)
                     user.username = username
-                    user.phone = cipher_suite.encrypt(phone.encode())
-                    user.email = cipher_suite.encrypt(email.encode())
                     user.is_superuser = False
                     user.is_staff = False
 
-                    # Ciframos la contraseña
+                    # Ciframos la contraseña y el email.
                     user.password = hasher.encode(password1, None)
+                    user.email = encrypt_data(email)
                     user.save()
+
+                    # Cigramos el número de teléfono y acutalizamos el perfil del usuario con el mismo.
+                    profile = user.profile
+                    profile.phone_number = encrypt_data(phone)
+                    profile.save()
+
                     login(request, user)
                     return redirect('home')
+                
                 except IntegrityError:
                     return render(request, 'logs/register.html', {'form': form, 'error': 'El usuario ya existe'})
             else:
@@ -78,12 +80,12 @@ def login_view(request):
         return render(request, 'logs/login.html', {'form': AuthenticationForm})
     else:
         username = request.POST['username']
-        password = request.POST['password']  # Esta es la contraseña en texto plano ingresada por el usuario
+        password = request.POST['password']  
 
         # Comprobamos si el usuario existe en la base de datos.
         try:
             user = User.objects.get(username=username)
-        except User.DoesNotExist:  # TODO Hacer que salte error si el usuario no existe
+        except User.DoesNotExist:
             return render(request, 'logs/login.html', {'form': AuthenticationForm,
                                                        'error': 'Usuario no encontrado'}
                           )
