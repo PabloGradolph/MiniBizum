@@ -37,7 +37,6 @@ def decrypt_data(ciphertext, key):
 def generate_key(password, salt):
     """
     Genera una clave de cifrado a partir de la contraseña del usuario y un salt aleatorio.
-
     Args:
         password: La contraseña del usuario en texto plano.
         salt: Un salt aleatorio.
@@ -64,6 +63,7 @@ def generate_key(password, salt):
 
 
 def store_key(key):
+    # TODO 1: Almacena la clave de cifrado en un lugar seguro.
     """
     Almacena la clave de cifrado en un lugar seguro.
 
