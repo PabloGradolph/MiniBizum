@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import CustomUserCreationForm
 from .my_hasher import MyPasswordHasher
-from .algorithms import encrypt_data
+from .algorithms import encrypt_data, generate_key, decrypt_data
 import re
 
 
@@ -52,13 +52,14 @@ def signup_view(request):
                     user.is_staff = False
 
                     # Ciframos la contraseña y el email.
-                    user.password = hasher.encode(password1, None)
-                    user.email = encrypt_data(email)
+                    user.password, salt = hasher.encode(password1, None)
+                    key = generate_key(password1, salt)
+                    user.email = encrypt_data(email, key)
                     user.save()
 
-                    # Cigramos el número de teléfono y acutalizamos el perfil del usuario con el mismo.
+                    # Ciframos el número de teléfono y actualizamos el perfil del usuario con el mismo.
                     profile = user.profile
-                    profile.phone_number = encrypt_data(phone)
+                    profile.phone_number = encrypt_data(phone, key)
                     profile.save()
 
                     login(request, user)

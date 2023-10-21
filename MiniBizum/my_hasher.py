@@ -3,6 +3,7 @@ from django.utils.crypto import constant_time_compare
 import hashlib
 import secrets
 
+
 class MyPasswordHasher(BasePasswordHasher):
     """
     Hasher de contraseñas personalizado que utiliza SHA-256 y un salt único.
@@ -22,7 +23,7 @@ class MyPasswordHasher(BasePasswordHasher):
         salted_password = password + salt
         hashed_password = hashlib.sha256(salted_password.encode()).hexdigest()
         # Devolvemos esto en el formato que Django espera.
-        return f"{self.algorithm}${hashed_password}${salt}"
+        return f"{self.algorithm}${hashed_password}${salt}", salt
 
     def verify(self, password, encoded):
         """
