@@ -6,12 +6,20 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import CustomUserCreationForm
 from .my_hasher import MyPasswordHasher
-from .algorithms import encrypt_data, generate_key, decrypt_data
-import re
+from .algorithms import encrypt_data, generate_key, decrypt_data, store_user_key, load_user_key
+from django.conf import settings
+
+
+master_key = settings.MASTER_KEY
 
 
 @login_required(login_url='login')
 def main(request):
+    user_key = load_user_key(request.user.id, master_key)
+    email = request.user.email
+    phone = request.user.profile.phone_number
+    request.user.email = decrypt_data(email, user_key)
+    request.user.profile.phone_number = decrypt_data(phone, user_key)
     return render(request, 'main.html', {})
 
 
@@ -32,44 +40,43 @@ def signup_view(request):
         
         # Gestión de errores.
         if len(username) > 35:
-            return render(request, '/logs/register.html',
+            return render(request, 'logs/register.html',
                           {'form': form, 'error': 'El nombre de usuario es demasiado largo.'})
 
         if len(phone) != 9:
-            return render(request, '/logs/register.html',
+            return render(request, 'logs/register.html',
                           {'form': form, 'error': 'Introduce un número de teléfono válido.'})
 
         if password1 == password2:
-            if re.match(r'^[a-zA-Z]+$', username):
-                if User.objects.filter(email=email).exists():
-                    return render(request, 'logs/register.html',
-                                  {'form': form, 'error': 'El email ya está registrado.'})
-                try:
-                    hasher = MyPasswordHasher()
-                    user = User()
-                    user.username = username
-                    user.is_superuser = False
-                    user.is_staff = False
-
-                    # Ciframos la contraseña y el email.
-                    user.password, salt = hasher.encode(password1, None)
-                    key = generate_key(password1, salt)
-                    user.email = encrypt_data(email, key)
-                    user.save()
-
-                    # Ciframos el número de teléfono y actualizamos el perfil del usuario con el mismo.
-                    profile = user.profile
-                    profile.phone_number = encrypt_data(phone, key)
-                    profile.save()
-
-                    login(request, user)
-                    return redirect('home')
-                
-                except IntegrityError:
-                    return render(request, 'logs/register.html', {'form': form, 'error': 'El usuario ya existe'})
-            else:
+            if User.objects.filter(email=email).exists():
                 return render(request, 'logs/register.html',
-                              {'form': form, 'error': 'El nombre de usuario debe contener solo letras'})
+                            {'form': form, 'error': 'El email ya está registrado.'})
+            try:
+                hasher = MyPasswordHasher()
+                user = User()
+                user.username = username
+                user.is_superuser = False
+                user.is_staff = False
+
+                # Ciframos la contraseña y el email.
+                user.password, salt = hasher.encode(password1, None)
+                key = generate_key(password1, salt)
+                user.email = encrypt_data(email, key)
+                user.save()
+
+                # Ciframos el número de teléfono y actualizamos el perfil del usuario con el mismo.
+                profile = user.profile
+                profile.phone_number = encrypt_data(phone, key)
+                profile.save()
+
+                # Almacenamos la clave del usuario de manera segura.
+                store_user_key(user.id, key, master_key)
+
+                login(request, user)
+                return redirect('home')
+                
+            except IntegrityError:
+                return render(request, 'logs/register.html', {'form': form, 'error': 'El usuario ya existe'})
         return render(request, 'logs/register.html', {'form': form, 'error': 'Las contraseñas no coinciden'})
 
 

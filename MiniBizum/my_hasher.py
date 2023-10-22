@@ -32,7 +32,7 @@ class MyPasswordHasher(BasePasswordHasher):
         algorithm, hashed_password, salt = encoded.split('$', 2)
         assert algorithm == self.algorithm
 
-        # Utilizamos tu método de verificación de contraseña.
+        # Utilizamos un método de verificación de contraseña.
         salted_password = password + salt
         calculated_hash = hashlib.sha256(salted_password.encode()).hexdigest()
 
