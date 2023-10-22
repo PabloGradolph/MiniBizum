@@ -16,11 +16,7 @@ from decouple import config
 
 
 # Carga la ruta al archivo de clave maestra desde la variable de entorno definida en .env
-MASTER_KEY_PATH = config('MASTER_KEY')
-
-# Lee la clave maestra desde el archivo
-with open(MASTER_KEY_PATH, 'rb') as key_file:
-    MASTER_KEY = key_file.read()
+MASTER_KEY = config('MASTER_KEY')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
