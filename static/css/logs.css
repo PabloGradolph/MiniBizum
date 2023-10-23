@@ -102,10 +102,12 @@ form .helptext {
     justify-content: center;
     align-items: center;
     margin-top: 20px;
+    text-align: center; /* Alinea el texto al centro horizontalmente */
 }
 
 .form-container .register-text a {
     margin-left: 5px;
+    display: inline-block; /* Convierte el enlace en un bloque en línea */
 }
 
 .form-container .register-text a:hover {

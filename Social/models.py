@@ -18,16 +18,18 @@ class Profile(models.Model):
     def following(self):
         user_ids = Relationship.objects.filter(from_user=self.user).values_list('to_user_id', flat=True)
         return User.objects.filter(id__in=user_ids)
-    
+
     def followers(self):
         user_ids = Relationship.objects.filter(to_user=self.user).values_list('from_user_id', flat=True)
         return User.objects.filter(id__in=user_ids)
+
 
 # Perfil generado automáticamente cuando un usuario se registra.
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
+
 
 post_save.connect(create_user_profile, sender=User)
 

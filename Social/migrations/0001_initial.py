@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('phone_number', models.CharField(max_length=20, unique=True)),
                 ('bio', models.TextField(default='Hola, MiniBizum!')),
-                ('image', models.ImageField(default='default.png', upload_to='')),
+                ('image', models.ImageField(default='default2.png', upload_to='')),
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
