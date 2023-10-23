@@ -9,6 +9,7 @@ idna==3.4
 Naked==0.1.32
 Pillow==10.1.0
 pycparser==2.21
+python-decouple==3.8
 PyYAML==6.0.1
 requests==2.31.0
 shellescape==3.8.1
