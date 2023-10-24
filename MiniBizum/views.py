@@ -48,7 +48,7 @@ def signup_view(request):
             return render(request, 'logs/register.html',
                           {'form': form, 'error': 'Introduce un número de teléfono válido.'})
 
-        patron = r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@#$%^&+=!])(?=\S+$).{8,}$'
+        patron = r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@#$%^&+=!(){}[\]:;<>,.?~\\|_\-])(?=\S+$).{8,}$'
         if not re.match(patron, password1):
             return render(request, 'logs/register.html',
                           {'form': form, 'error': 'La contraseña no cumple los requisitos.'})
