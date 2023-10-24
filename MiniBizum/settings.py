@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 from decouple import config
 
+
 # Carga la ruta al archivo de clave maestra desde la variable de entorno definida en .env
 MASTER_KEY = config('MASTER_KEY')
 
