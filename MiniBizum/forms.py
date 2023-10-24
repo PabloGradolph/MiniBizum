@@ -14,8 +14,8 @@ class CustomUserCreationForm(UserCreationForm):
         self.fields['username'].help_text = 'Introduce solo letras y no más de 35 caracteres.'
         self.fields['username'].label = 'Nombre de usuario'
         self.fields['username'].validators = []
-        self.fields['password1'].help_text = ("Su contraseña debe contener al menos 8 caracteres y no puede ser "
-                                              "completamente numérica.")
+        self.fields['password1'].help_text = ("Su contraseña debe contener al menos 8 caracteres con letras, números y "
+                                              "al menos un caracter especial.")
         self.fields['password1'].label = 'Contraseña'
         self.fields['password2'].help_text = ""
         self.fields['password2'].label = 'Repetir contraseña'

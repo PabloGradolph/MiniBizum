@@ -8,6 +8,7 @@ from .forms import CustomUserCreationForm
 from .my_hasher import MyPasswordHasher
 from .algorithms import encrypt_data, generate_key, decrypt_data, store_user_key, load_user_key
 from django.conf import settings
+import re
 
 
 master_key = settings.MASTER_KEY
@@ -46,6 +47,11 @@ def signup_view(request):
         if len(phone) != 9:
             return render(request, 'logs/register.html',
                           {'form': form, 'error': 'Introduce un número de teléfono válido.'})
+
+        patron = r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@#$%^&+=!])(?=\S+$).{8,}$'
+        if not re.match(patron, password1):
+            return render(request, 'logs/register.html',
+                          {'form': form, 'error': 'La contraseña no cumple los requisitos.'})
 
         if password1 == password2:
             if User.objects.filter(email=email).exists():
