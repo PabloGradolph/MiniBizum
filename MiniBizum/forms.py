@@ -7,7 +7,7 @@ class CustomUserCreationForm(UserCreationForm):
     """Modifica el formulario de registro de usuario para que cumpla ciertos requistios especificos de nuestro
     proyecto."""
 
-    phone = forms.CharField(label='Teléfono', max_length=9, required=True, help_text='Introduce tu número de teléfono.')
+    phone = forms.CharField(label='Teléfono', max_length=9, required=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
