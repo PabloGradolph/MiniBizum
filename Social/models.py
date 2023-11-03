@@ -11,6 +11,7 @@ class Profile(models.Model):
     phone_number = models.CharField(max_length=20, unique=True, null=False, blank=False)
     bio = models.TextField(default='Hola, MiniBizum!')
     image = models.ImageField(default='default.png')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self) -> str:
         return f"Perfil de {self.user.username}"
@@ -38,6 +39,7 @@ class Post(models.Model):
     content = models.TextField()
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    image = models.ImageField(blank=True, null=True)
 
     class Meta:
         ordering = ['-timestamp']

@@ -11,8 +11,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-import os
 from decouple import config
+import os
 
 
 # Carga la ruta al archivo de clave maestra desde la variable de entorno definida en .env
