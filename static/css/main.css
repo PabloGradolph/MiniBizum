@@ -14,7 +14,6 @@
     box-sizing: border-box;
 }
 
-
 .left-bar, .right-bar {
     flex-basis: calc(20% - 20px);
 }

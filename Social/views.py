@@ -1,7 +1,7 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
-from django.db.models import Count
+from django.db.models import Count, Sum
 from django.contrib.auth.models import User
 from .models import Transaction, Relationship
 from .forms import PostForm, UserUpdateForm, ProfileUpdateForm
@@ -64,22 +64,6 @@ def home(request):
 
 
 @login_required(login_url='login')
-def delete(request, post_id):
-    post = Transaction.objects.get(id=post_id)
-    post.delete()
-    
-    # Obtén la URL de la página anterior
-    referer = request.META.get('HTTP_REFERER')
-        
-    if 'profile' in referer:
-        username = request.user.username
-        profile_url = reverse('profile', kwargs={'username': username})
-        return redirect(profile_url)
-    else:
-        return redirect('home')
-
-
-@login_required(login_url='login')
 def edit(request):
     if request.method == 'POST':
         u_form = UserUpdateForm(request.POST, instance=request.user)
@@ -99,9 +83,23 @@ def edit(request):
 
 @login_required(login_url='login')
 def profile(request, username):
-    user = User.objects.get(username=username)
-    posts = user.posts.all()
-    context = {'user': user, 'posts':posts}
+    user = get_object_or_404(User, username=username)
+    transactions = user.posts.all()
+    
+    # Calcula el total enviado y recibido.
+    total_sent = Transaction.objects.filter(user=user).aggregate(Sum('amount'))['amount__sum'] or 0
+    total_received = Transaction.objects.filter(recipient=user).aggregate(Sum('amount'))['amount__sum'] or 0
+
+    # Obtiene el saldo actual del perfil del usuario.
+    balance = user.profile.amount
+
+    context = {
+        'user': user,
+        'transactions': transactions,
+        'total_sent': total_sent,
+        'total_received': total_received,
+        'balance': balance,
+    }
     return render(request, 'social/profile.html', context)
 
 
