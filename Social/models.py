@@ -11,7 +11,7 @@ class Profile(models.Model):
     phone_number = models.CharField(max_length=20, unique=True, null=False, blank=False)
     bio = models.TextField(default='Hola, MiniBizum!')
     image = models.ImageField(default='default.png')
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=20)
 
     def __str__(self) -> str:
         return f"Perfil de {self.user.username}"
@@ -33,19 +33,27 @@ def create_user_profile(sender, instance, created, **kwargs):
 post_save.connect(create_user_profile, sender=User)
 
 
-# Modelo para las publicaciones de los usuarios.
-class Post(models.Model):
+class Transaction(models.Model):
+    TRANSACTION_CHOICES = [
+        ('enviar_dinero', 'Enviar dinero'),
+        ('solicitar_dinero', 'Solicitar dinero'),
+    ]
+
     timestamp = models.DateTimeField(default=timezone.now)
-    content = models.TextField()
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_CHOICES)
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_posts', null=True)
+    transaction_message = models.TextField(blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    image = models.ImageField(blank=True, null=True)
 
     class Meta:
         ordering = ['-timestamp']
 
-    def __str__(self) -> str:
-        return self.content
+    def __str__(self):
+        if self.transaction_type == 'enviar_dinero':
+            return f"{self.user.username} envía {self.amount}€ a {self.recipient.username}"
+        elif self.transaction_type == 'solicitar_dinero':
+            return f"{self.user.username} solicita {self.amount}€ a {self.recipient.username}"
 
 
 class Relationship(models.Model):
