@@ -65,20 +65,28 @@ def home(request):
 
 @login_required(login_url='login')
 def edit(request):
+    error = ''
     if request.method == 'POST':
         u_form = UserUpdateForm(request.POST, instance=request.user)
         p_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
 
         if u_form.is_valid() and p_form.is_valid():
             u_form.save()
-            p_form.save()
-            return redirect('home')
+
+            amount_to_add = p_form.cleaned_data.get('amount_to_add')
+            if amount_to_add is not None:
+                profile = p_form.save(commit=False)
+                profile.amount += amount_to_add
+                profile.save()
+            return redirect('profile', username=request.user.username)
+        else:
+            error = "Ese nombre de usuario ya está registrado en MiniBizum."
     else:
         u_form = UserUpdateForm(instance=request.user)
-        p_form = ProfileUpdateForm()
+        p_form = ProfileUpdateForm(instance=request.user.profile)
         
-    context = {'u_form': u_form, 'p_form': p_form}
-    return render(request, 'social/editar.html', context)
+    context = {'u_form': u_form, 'p_form': p_form, 'error': error}
+    return render(request, 'social/editartwo.html', context)
 
 
 @login_required(login_url='login')

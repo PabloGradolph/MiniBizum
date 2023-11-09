@@ -37,6 +37,10 @@ class UserUpdateForm(forms.ModelForm):
         fields = ['first_name', 'username']
 
 class ProfileUpdateForm(forms.ModelForm):
+    amount_to_add = forms.DecimalField(max_digits=10, decimal_places=2, required=False, min_value=0)
     class Meta:
         model = Profile
         fields = ['image', 'bio']
+        widgets = {
+            'image': forms.FileInput(attrs={'class': 'hide-current-image'})
+        }
