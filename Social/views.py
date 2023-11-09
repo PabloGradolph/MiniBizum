@@ -78,6 +78,7 @@ def edit(request):
                 profile = p_form.save(commit=False)
                 profile.amount += amount_to_add
                 profile.save()
+            p_form.save()
             return redirect('profile', username=request.user.username)
         else:
             error = "Ese nombre de usuario ya está registrado en MiniBizum."
@@ -95,7 +96,7 @@ def profile(request, username):
     transactions = user.posts.all()
     
     # Calcula el total enviado y recibido.
-    total_sent = Transaction.objects.filter(user=user).aggregate(Sum('amount'))['amount__sum'] or 0
+    total_sent = Transaction.objects.filter(user=user, transaction_type='enviar_dinero').aggregate(Sum('amount'))['amount__sum'] or 0
     total_received = Transaction.objects.filter(recipient=user).aggregate(Sum('amount'))['amount__sum'] or 0
 
     # Obtiene el saldo actual del perfil del usuario.
