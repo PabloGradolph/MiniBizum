@@ -14,3 +14,6 @@ En cuanto a las funcionalidades, observamos las siguientes:
 3. Configura los ajustes de tu base de datos en `settings.py` (Puedes usar la configuración que viene por defecto con sqlite3)
 4. Aplica las migraciones con: `python manage.py migrate`
 5. Ejecuta el servidor de desarrollo: `python manage.py runserver`
+
+# Lista de cambios que hacer
+Cuando mandas dinero a un user, a ese user no le aparece la transaccione entonces hay que añadirlo tambien a su base de datos

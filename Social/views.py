@@ -46,6 +46,11 @@ def home(request):
                     error = 'El usuario seleccionado no existe'
                     context = {'user_balance': user_balance, 'top_users': top_users, 'transactions': transactions, 'form': form, 'error': error}
                     return render(request, 'main.html', context)
+                else:
+                    request.user.profile.amount += amount
+                    request.user.profile.save()
+                    recipient.profile.amount -= amount
+                    recipient.profile.save()
                 
             transaction = Transaction(
                 user=request.user,
@@ -97,7 +102,7 @@ def profile(request, username):
     
     # Calcula el total enviado y recibido.
     total_sent = Transaction.objects.filter(user=user, transaction_type='enviar_dinero').aggregate(Sum('amount'))['amount__sum'] or 0
-    total_received = Transaction.objects.filter(recipient=user).aggregate(Sum('amount'))['amount__sum'] or 0
+    total_received = Transaction.objects.filter(recipient=user, transaction_type='enviar_dinero').aggregate(Sum('amount'))['amount__sum'] or 0
 
     # Obtiene el saldo actual del perfil del usuario.
     balance = user.profile.amount

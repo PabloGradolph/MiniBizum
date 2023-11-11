@@ -19,7 +19,7 @@
             </a>
         </div>
         <nav>
-            <a href="#">Mi perfil</a>
+            <a href="{% url 'profile' user %}">Mi perfil</a>
             <a href="#">Quienes Somos</a>
             {% if user.is_authenticated %}
                 <a href="{% url 'logout' %}">Cerrar Sesión</a>
