@@ -1,21 +1,247 @@
 .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
     margin-top: 100px;
     width: 100%;
     padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     text-align: center;
     background-color: #f9f9f9;
 }
 
-.profile-image {
-    max-width: 150px; 
-    height: auto;
-    border-radius: 50%; 
-    margin: 20px 0; 
+.left-bar, .center-bar, .right-bar {
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-p {
-    color: #333; 
-    font-family: Arial, sans-serif; 
+.left-bar, .right-bar {
+    flex-basis: calc(20% - 20px);
+}
+
+.center-bar {
+    flex-basis: calc(60% - 40px);
+}
+
+.left-bar {
+    background-color: #fff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); 
+    border-radius: 10px;
+    margin-left: 20px;
+    padding: 20px;
+}
+
+.card {
+    border: 1px solid #ddd; 
+    padding: 20px;
+    border-radius: 10px; 
+}
+
+.card-img {
+    max-width: 100%; 
+    border-radius: 50%; 
+}
+
+.card-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.card-text {
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
+
+.card-title.font-weight-bold {
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.profile-btn {
+    display: block;
+    background-color: #337ab7;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.profile-btn:hover {
+    background-color: #23527c;
+}
+
+.btn-primary {
+    margin-top: 10px;
+    background-color: #337ab7;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px; 
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.btn-primary:hover {
+    background-color: #23527c; 
+}
+
+.center-bar {
+    flex-basis: calc(60% - 40px); 
+    background-color: #fff;
+    padding: 20px;
+    box-sizing: border-box;
+    border-radius: 10px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.post-form {
+    padding-bottom: 20px;
+    margin-bottom: 40px;
+    margin-right: 20px;
+    border-bottom: 1px solid #d6d6d6;
+}
+
+.post-form p {
+    color: red;
+    margin-bottom: 10px; 
+}
+
+.post-form input[type="text"],
+.post-form input[type="number"],
+.post-form textarea,
+.post-form button {
+    width: 100%; 
+    margin-bottom: 10px; 
+    padding: 10px;
+    border: 1px solid #ddd; 
+    border-radius: 5px;
+}
+
+input[type="number"]::placeholder,
+input[type="text"]::placeholder,
+textarea::placeholder {
+    color: #999;
+    font-style: italic;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.post-form .btn-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.post-form button {
+    margin: 20px;
+    background-color: #337ab7;
+    color: white;
+    font-weight: bold;
+    border: none; 
+    cursor: pointer; 
+    width: 50%;
+}
+
+.post-form button:hover {
+    background-color: #23527c;
+}
+
+.transactions-title {
+    font-size: 24px; 
+    font-weight: bold; 
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.transaction-card {
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px; 
+    background-color: #f0f4f8; 
+}
+
+.user-img {
+    max-width: 100px; 
+    border-radius: 50%;
+}
+
+.transaction-header-info a {
+    text-decoration: none;
+    color: #337ab7;
+    font-weight: bold;
+}
+
+.trash a {
+    text-decoration: none;
+    color: #657786;
+    font-size: 20px; 
+}
+
+.transaction-message p {
+    margin-top: 10px;
+}
+
+.time-ago {
+    color: #999; 
+    font-size: 12px;
+}
+
+.right-bar {
+    padding: 20px;
+    box-sizing: border-box;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    margin-right: 40px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); 
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.top-users h3 {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.top-users ul {
+    list-style-type: none; /* Quitar los puntos de la lista */
+    padding: 0;
+}
+
+.top-users li {
+    margin-bottom: 10px; /* Espacio entre cada elemento de la lista */
+}
+
+.top-users a {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #337ab7;
+    font-weight: bold;
+}
+
+.top-users a img {
+    max-width: 60px; /* Tamaño máximo de la imagen */
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.user-amount h3 {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 40px;
+    color: #333;
+}
+
+.user-amount p {
+    font-size: 24px;
+    font-weight: bold;
+    color: #009688;
 }

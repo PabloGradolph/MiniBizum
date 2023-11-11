@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    Editar Perfil
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'css/social/edit.css' %}">
+{% endblock %}
+
+{% block header %}
+<header>
+    <div class="header-container">
+        <div class="logo">
+            <a href="{% url 'home' %}" id="change" class="logo-btn">
+                MiniBizum
+            </a>
+        </div>
+        <nav>
+            <a href="#">Mi perfil</a>
+            <a href="#">Quienes Somos</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}">Cerrar Sesión</a>
+            {% else %}
+                <a href="{% url 'login' %}">Iniciar Sesión</a>
+            {% endif %}
+        </nav>
+    </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="formulario">
+        <div class="user-img">
+            <img src="{{ user.profile.image.url }}" alt="" class="avator">
+        </div>
+
+        <!-- Formulario -->
+        <form class="col pr-0" method="post" enctype="multipart/form-data">
+            <h3 class="edit-title">Edita tu usuario:</h3>
+            <p>{{ error }}</p>
+            {% csrf_token %}
+            <div class="input-wrapper">
+                <label>Nombre</label>
+                {{ u_form.first_name }}
+            </div>
+            <div class="input-wrapper">
+                <label for="user-name-id">Username</label>
+                {{ u_form.username }}
+            </div>
+            <div class="input-wrapper">
+                <label>Bio</label>
+                {{ p_form.bio }}
+            </div>
+            <div class="input-wrapper">
+                <label for="id_image" class="custom-file-upload">Cambiar Imagen</label>
+                {{ p_form.image }}
+            </div>
+            <div class="input-wrapper">
+                <label for="id_amount" class="amount">Añadir Saldo</label>
+                {{ p_form.amount_to_add }}
+            </div>
+
+            <button class="btn primary-btn">Actualizar</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

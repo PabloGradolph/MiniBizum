@@ -1,68 +1,114 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
+from django.db.models import Count, Sum
 from django.contrib.auth.models import User
-from .models import Profile, Post, Relationship
+from .models import Transaction, Relationship
 from .forms import PostForm, UserUpdateForm, ProfileUpdateForm
-from django.core.cache import cache
-from datetime import datetime, timedelta
+
 
 @login_required(login_url='login')
 def home(request):
-    posts = Post.objects.all()
+    transactions = Transaction.objects.all()
+    user_balance = request.user.profile.amount
+    top_users = User.objects.annotate(transaction_count=Count('posts')).order_by('-transaction_count')[:3]
     if request.method == 'POST':
-        form = PostForm(request.POST, request.FILES)
+        form = PostForm(request.POST)
         if form.is_valid():
-            post = form.save(commit=False)
-            post.user = request.user
-            post.save()
+            transaction_type = form.cleaned_data['transaction_type']
+            recipient = form.cleaned_data['recipient_username']
+            transaction_message = form.cleaned_data['transaction_message']
+            amount = form.cleaned_data['amount']
+
+            if transaction_type == 'enviar_dinero':
+                
+                if amount > user_balance:
+                    error = 'Saldo insuficiente para realizar la transacción'
+                    context = {'user_balance': user_balance, 'top_users': top_users, 'transactions': transactions, 'form': form, 'error': error}
+                    return render(request, 'main.html', context)
+                else:
+                    try:
+                        recipient = User.objects.get(username=recipient)
+                    except User.DoesNotExist:
+                        error = 'El usuario seleccionado no existe'
+                        context = {'user_balance': user_balance, 'top_users': top_users, 'transactions': transactions, 'form': form, 'error': error}
+                        return render(request, 'main.html', context)
+                    else:
+                        request.user.profile.amount -= amount
+                        request.user.profile.save()
+                        recipient.profile.amount += amount
+                        recipient.profile.save()
+
+            else:
+                try:
+                    recipient = User.objects.get(username=recipient)
+                except User.DoesNotExist:
+                    error = 'El usuario seleccionado no existe'
+                    context = {'user_balance': user_balance, 'top_users': top_users, 'transactions': transactions, 'form': form, 'error': error}
+                    return render(request, 'main.html', context)
+                
+            transaction = Transaction(
+                user=request.user,
+                transaction_type=transaction_type,
+                recipient=recipient,
+                transaction_message=transaction_message,
+                amount=amount,
+            )
+            transaction.save()
             return redirect('home')
     else:
         form = PostForm()
 
-    context = {'posts': posts, 'form': form}
-    return render(request, 'mainpage.html', context)
-
-
-@login_required(login_url='login')
-def delete(request, post_id):
-    post = Post.objects.get(id=post_id)
-    post.delete()
-    
-    # Obtén la URL de la página anterior
-    referer = request.META.get('HTTP_REFERER')
-        
-    if 'profile' in referer:
-        username = request.user.username
-        profile_url = reverse('profile', kwargs={'username': username})
-        return redirect(profile_url)
-    else:
-        return redirect('home')
+    context = {'user_balance': user_balance, 'top_users': top_users, 'transactions': transactions, 'form': form}
+    return render(request, 'main.html', context)
 
 
 @login_required(login_url='login')
 def edit(request):
+    error = ''
     if request.method == 'POST':
         u_form = UserUpdateForm(request.POST, instance=request.user)
         p_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
 
         if u_form.is_valid() and p_form.is_valid():
             u_form.save()
+
+            amount_to_add = p_form.cleaned_data.get('amount_to_add')
+            if amount_to_add is not None:
+                profile = p_form.save(commit=False)
+                profile.amount += amount_to_add
+                profile.save()
             p_form.save()
-            return redirect('home')
+            return redirect('profile', username=request.user.username)
+        else:
+            error = "Ese nombre de usuario ya está registrado en MiniBizum."
     else:
         u_form = UserUpdateForm(instance=request.user)
-        p_form = ProfileUpdateForm()
+        p_form = ProfileUpdateForm(instance=request.user.profile)
         
-    context = {'u_form': u_form, 'p_form': p_form}
-    return render(request, 'social/editar.html', context)
+    context = {'u_form': u_form, 'p_form': p_form, 'error': error}
+    return render(request, 'social/editartwo.html', context)
 
 
 @login_required(login_url='login')
 def profile(request, username):
-    user = User.objects.get(username=username)
-    posts = user.posts.all()
-    context = {'user': user, 'posts':posts}
+    user = get_object_or_404(User, username=username)
+    transactions = user.posts.all()
+    
+    # Calcula el total enviado y recibido.
+    total_sent = Transaction.objects.filter(user=user, transaction_type='enviar_dinero').aggregate(Sum('amount'))['amount__sum'] or 0
+    total_received = Transaction.objects.filter(recipient=user).aggregate(Sum('amount'))['amount__sum'] or 0
+
+    # Obtiene el saldo actual del perfil del usuario.
+    balance = user.profile.amount
+
+    context = {
+        'user': user,
+        'transactions': transactions,
+        'total_sent': total_sent,
+        'total_received': total_received,
+        'balance': balance,
+    }
     return render(request, 'social/profile.html', context)
 
 
