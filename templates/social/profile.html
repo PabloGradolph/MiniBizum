@@ -76,7 +76,7 @@
                     {% if transaction.user == user %}
                         <span class="transaction-type">Envío de {{ transaction.amount }}€ a {{ transaction.recipient.username }}</span>
                     {% elif transaction.recipient == user %}
-                        <span class="transaction-type">Recibo de {{ transaction.amount }}€ de {{ transaction.user.username }}</span>
+                        <span class="transaction-type">Pago de {{ transaction.amount }}€ de {{ transaction.user.username }}</span>
                     {% endif %}
                 {% else %}
                     {% if transaction.user == user %}

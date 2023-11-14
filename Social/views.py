@@ -8,6 +8,7 @@ from .forms import PostForm, UserUpdateForm, ProfileUpdateForm
 from django.conf import settings
 from MiniBizum import algorithms
 from .firma import generate_keys, sign_transaction, verify_signature, store_private_key
+from cryptography.hazmat.primitives import serialization
 
 master_key = settings.MASTER_KEY
 
@@ -61,13 +62,22 @@ def home(request):
                     return render(request, 'main.html', context)
             
             user_key = algorithms.load_user_key(request.user.id, master_key)  # Clave simétrica del usuario
-            # TODO acceder a los users, y ahi coger el id del usuario que queremos porque sino no se almacena en su bd
+            
+            # ------ Aqui se firma la transacción ------
+            private_key, public_key = generate_keys()
+            # Guardamos la clave pública en el perfil del usuario
+            # Serialize the public key to a PEM string
+            request.user.profile.public_key = public_key
+            request.user.profile.save()
+            store_private_key(master_key, private_key, request.user.id)  # Guardamos la clave privada cifrada en el directorio /keys
+            signature = sign_transaction(private_key, transaction_message, amount)
             transaction = Transaction(
                 user=request.user,
                 transaction_type=transaction_type,
                 recipient=recipient,
                 transaction_message=algorithms.encrypt_data(str(transaction_message), user_key),
                 amount=algorithms.encrypt_data(str(amount), user_key),
+                signature=signature,
             )
             transaction.save()
             return redirect('home')
@@ -118,17 +128,20 @@ def profile(request, username):
         decrypted_transaction = transaction
         decrypted_transaction.transaction_message = algorithms.decrypt_data(decrypted_transaction.transaction_message, user_key)
         decrypted_transaction.amount = algorithms.decrypt_data(decrypted_transaction.amount, user_key)
-        decrypted_sent_transactions.append(decrypted_transaction)
-    
+        if verify_signature(user.profile.public_key, transaction.signature, transaction.transaction_message, transaction.amount):
+            decrypted_sent_transactions.append(decrypted_transaction)
+
     # Desciframos las transacciones recibidas por el usuario.
     decrypted_received_transactions = []
     for transaction in encrypted_received_transactions:
-        # La user_key cambia en función del usuario que ha enviado la transacción.
+        print(transaction.user.profile.public_key, type(transaction.user.profile.public_key), transaction.signature, transaction.transaction_message, transaction.amount)
+            # La user_key cambia en función del usuario que ha enviado la transacción.
         user_key = algorithms.load_user_key(transaction.user.id, master_key)
         decrypted_transaction = transaction
         decrypted_transaction.transaction_message = algorithms.decrypt_data(decrypted_transaction.transaction_message, user_key)
         decrypted_transaction.amount = algorithms.decrypt_data(decrypted_transaction.amount, user_key)
-        decrypted_received_transactions.append(decrypted_transaction)
+        if verify_signature(transaction.user.profile.public_key, transaction.signature, transaction.transaction_message, transaction.amount):
+            decrypted_received_transactions.append(decrypted_transaction)
         
     # Calcula el total enviado y recibido.
     total_sent = sum(int(transaction.amount) for transaction in decrypted_sent_transactions if transaction.transaction_type == 'enviar_dinero') or 0

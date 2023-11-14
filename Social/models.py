@@ -11,9 +11,10 @@ from MiniBizum import algorithms
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     phone_number = models.CharField(max_length=20, unique=True, null=False, blank=False)
-    bio = models.TextField(default='Hola, MiniBizum!')
+    bio = models.TextField(default='Hola, estoy usando MiniBizum!')
     image = models.ImageField(default='default.png')
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=20)
+    public_key = models.BinaryField(blank=True)
 
     def __str__(self) -> str:
         return f"Perfil de {self.user.username}"
@@ -48,6 +49,7 @@ class Transaction(models.Model):
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_posts', null=True)
     transaction_message = models.TextField(blank=True)
     amount = models.TextField(blank=True)
+    signature = models.BinaryField(blank=True)
     
 
     class Meta:
