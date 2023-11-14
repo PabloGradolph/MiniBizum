@@ -16,8 +16,8 @@ def home(request):
     # Desencriptamos los datos de las transacciones
     encrypted_transactions = Transaction.objects.all()
     transactions = []
-    user_key = algorithms.load_user_key(request.user.id, master_key)
     for transaction in encrypted_transactions:
+        user_key = algorithms.load_user_key(transaction.user.id, master_key)
         decrypted_transaction = transaction
         decrypted_transaction.transaction_message = algorithms.decrypt_data(decrypted_transaction.transaction_message, user_key)
         decrypted_transaction.amount = algorithms.decrypt_data(decrypted_transaction.amount, user_key)
