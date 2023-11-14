@@ -5,7 +5,10 @@ from django.db.models import Count, Sum
 from django.contrib.auth.models import User
 from .models import Transaction, Relationship
 from .forms import PostForm, UserUpdateForm, ProfileUpdateForm
+from django.conf import settings
+from MiniBizum import algorithms
 
+master_key = settings.MASTER_KEY
 
 @login_required(login_url='login')
 def home(request):
@@ -51,13 +54,15 @@ def home(request):
                     request.user.profile.save()
                     recipient.profile.amount -= amount
                     recipient.profile.save()
-                
+            
+            user_key = algorithms.load_user_key(request.user.id, master_key)
+            
             transaction = Transaction(
                 user=request.user,
                 transaction_type=transaction_type,
                 recipient=recipient,
-                transaction_message=transaction_message,
-                amount=amount,
+                transaction_message=algorithms.encrypt_data(str(transaction_message), user_key),
+                amount=algorithms.encrypt_data(str(amount), user_key),
             )
             transaction.save()
             return redirect('home')
@@ -102,7 +107,7 @@ def profile(request, username):
     
     # Calcula el total enviado y recibido.
     total_sent = Transaction.objects.filter(user=user, transaction_type='enviar_dinero').aggregate(Sum('amount'))['amount__sum'] or 0
-    total_received = Transaction.objects.filter(recipient=user, transaction_type='enviar_dinero').aggregate(Sum('amount'))['amount__sum'] or 0
+    total_received = Transaction.objects.filter(recipient=user, transaction_type='solicitar_dinero').aggregate(Sum('amount'))['amount__sum'] or 0
 
     # Obtiene el saldo actual del perfil del usuario.
     balance = user.profile.amount

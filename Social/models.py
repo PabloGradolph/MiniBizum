@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
+from django.conf import settings
+from MiniBizum import algorithms
 
 
 # Modelo para los perfiles de los usuarios (añade atributos a los usuarios)
@@ -32,6 +34,7 @@ def create_user_profile(sender, instance, created, **kwargs):
 
 post_save.connect(create_user_profile, sender=User)
 
+master_key = settings.MASTER_KEY
 
 class Transaction(models.Model):
     TRANSACTION_CHOICES = [
@@ -44,16 +47,18 @@ class Transaction(models.Model):
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_CHOICES)
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_posts', null=True)
     transaction_message = models.TextField(blank=True)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    amount = models.TextField(blank=True)
+    
 
     class Meta:
         ordering = ['-timestamp']
 
     def __str__(self):
+        user_key = algorithms.load_user_key(self.user.id, master_key)
         if self.transaction_type == 'enviar_dinero':
-            return f"{self.user.username} envía {self.amount}€ a {self.recipient.username}"
+            return f"{self.user.username} envía {algorithms.decrypt_data(self.amount, user_key)}€ a {self.recipient.username}"
         elif self.transaction_type == 'solicitar_dinero':
-            return f"{self.user.username} solicita {self.amount}€ a {self.recipient.username}"
+            return f"{self.user.username} solicita {algorithms.decrypt_data(self.amount, user_key)}€ a {self.recipient.username}"
 
 
 class Relationship(models.Model):
