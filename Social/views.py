@@ -12,7 +12,16 @@ master_key = settings.MASTER_KEY
 
 @login_required(login_url='login')
 def home(request):
-    transactions = Transaction.objects.all()
+    # Desencriptamos los datos de las transacciones
+    encrypted_transactions = Transaction.objects.all()
+    transactions = []
+    user_key = algorithms.load_user_key(request.user.id, master_key)
+    for transaction in encrypted_transactions:
+        decrypted_transaction = transaction
+        decrypted_transaction.transaction_message = algorithms.decrypt_data(decrypted_transaction.transaction_message, user_key)
+        decrypted_transaction.amount = algorithms.decrypt_data(decrypted_transaction.amount, user_key)
+        transactions.append(decrypted_transaction)
+        
     user_balance = request.user.profile.amount
     top_users = User.objects.annotate(transaction_count=Count('posts')).order_by('-transaction_count')[:3]
     if request.method == 'POST':
@@ -103,11 +112,25 @@ def edit(request):
 @login_required(login_url='login')
 def profile(request, username):
     user = get_object_or_404(User, username=username)
-    transactions = user.posts.all()
+    encrypted_transactions = user.posts.all()
+    transactions = []
+    user_key = algorithms.load_user_key(request.user.id, master_key)
+    for transaction in encrypted_transactions:
+        decrypted_transaction = transaction
+        decrypted_transaction.transaction_message = algorithms.decrypt_data(decrypted_transaction.transaction_message, user_key)
+        decrypted_transaction.amount = algorithms.decrypt_data(decrypted_transaction.amount, user_key)
+        transactions.append(decrypted_transaction)
     
     # Calcula el total enviado y recibido.
-    total_sent = Transaction.objects.filter(user=user, transaction_type='enviar_dinero').aggregate(Sum('amount'))['amount__sum'] or 0
-    total_received = Transaction.objects.filter(recipient=user, transaction_type='solicitar_dinero').aggregate(Sum('amount'))['amount__sum'] or 0
+    # Filtrar todas las transacciones enviadas por el usuario
+    sent_transactions = [transaction for transaction in transactions if transaction.transaction_type == 'enviar_dinero']
+    # Sumar todas las transacciones
+    total_sent = sum(int(transaction.amount) for transaction in sent_transactions) or 0
+
+    # Filtrar todas las transacciones recibidas por el usuario
+    received_transactions = [transaction for transaction in transactions if transaction.transaction_type == 'solicitar_dinero']
+    # Sumar todas las transacciones
+    total_received = sum(int(transaction.amount) for transaction in received_transactions) or 0
 
     # Obtiene el saldo actual del perfil del usuario.
     balance = user.profile.amount

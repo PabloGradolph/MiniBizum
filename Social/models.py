@@ -56,9 +56,10 @@ class Transaction(models.Model):
     def __str__(self):
         user_key = algorithms.load_user_key(self.user.id, master_key)
         if self.transaction_type == 'enviar_dinero':
-            return f"{self.user.username} envía {algorithms.decrypt_data(self.amount, user_key)}€ a {self.recipient.username}"
+            return f"{self.user.username} envía {self.amount}€ a {self.recipient.username}"
         elif self.transaction_type == 'solicitar_dinero':
-            return f"{self.user.username} solicita {algorithms.decrypt_data(self.amount, user_key)}€ a {self.recipient.username}"
+            return f"{self.user.username} solicita {self.amount}€ a {self.recipient.username}"
+        
 
 
 class Relationship(models.Model):
