@@ -72,8 +72,12 @@
         <div class="transaction-card">
             <!-- Transaction Info -->
             <div class="transaction-body">
-                {% if transaction.transaction_type == 'enviar_dinero' %}
-                    <span class="transaction-type">Envío de {{ transaction.amount }}€ a {{ transaction.recipient.username }}</span>
+                {% if transaction.transaction_type == 'enviar_dinero'%}
+                    {% if transaction.user == user %}
+                        <span class="transaction-type">Envío de {{ transaction.amount }}€ a {{ transaction.recipient.username }}</span>
+                    {% elif transaction.recipient == user %}
+                        <span class="transaction-type">Recibo de {{ transaction.amount }}€ de {{ transaction.user.username }}</span>
+                    {% endif %}
                 {% else %}
                     <span class="transaction-type">Solicita {{ transaction.amount }}€ a {{ transaction.recipient.username }}</span>
                 {% endif %}

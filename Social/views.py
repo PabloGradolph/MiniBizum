@@ -59,11 +59,6 @@ def home(request):
                     error = 'El usuario seleccionado no existe'
                     context = {'user_balance': user_balance, 'top_users': top_users, 'transactions': transactions, 'form': form, 'error': error}
                     return render(request, 'main.html', context)
-                else:
-                    request.user.profile.amount += amount
-                    request.user.profile.save()
-                    recipient.profile.amount -= amount
-                    recipient.profile.save()
             
             user_key = algorithms.load_user_key(request.user.id, master_key)  # Clave simétrica del usuario
             # TODO acceder a los users, y ahi coger el id del usuario que queremos porque sino no se almacena en su bd
@@ -113,28 +108,38 @@ def edit(request):
 @login_required(login_url='login')
 def profile(request, username):
     user = get_object_or_404(User, username=username)
-    encrypted_transactions = user.posts.all()
-    transactions = []
+    encrypted_sent_transactions = Transaction.objects.filter(user=user, transaction_type='enviar_dinero')
+    encrypted_received_transactions = Transaction.objects.filter(recipient=user, transaction_type='enviar_dinero')
+    
+    # Desciframos las transacciones enviadas por el usuario.
+    decrypted_sent_transactions = []
     user_key = algorithms.load_user_key(user.id, master_key)
-    for transaction in encrypted_transactions:
+    for transaction in encrypted_sent_transactions:
         decrypted_transaction = transaction
         decrypted_transaction.transaction_message = algorithms.decrypt_data(decrypted_transaction.transaction_message, user_key)
         decrypted_transaction.amount = algorithms.decrypt_data(decrypted_transaction.amount, user_key)
-        transactions.append(decrypted_transaction)
+        decrypted_sent_transactions.append(decrypted_transaction)
     
+    # Desciframos las transacciones recibidas por el usuario.
+    decrypted_received_transactions = []
+    for transaction in encrypted_received_transactions:
+        # La user_key cambia en función del usuario que ha enviado la transacción.
+        user_key = algorithms.load_user_key(transaction.user.id, master_key)
+        decrypted_transaction = transaction
+        decrypted_transaction.transaction_message = algorithms.decrypt_data(decrypted_transaction.transaction_message, user_key)
+        decrypted_transaction.amount = algorithms.decrypt_data(decrypted_transaction.amount, user_key)
+        decrypted_received_transactions.append(decrypted_transaction)
+        
     # Calcula el total enviado y recibido.
-    # Filtrar todas las transacciones enviadas por el usuario
-    sent_transactions = [transaction for transaction in transactions if transaction.transaction_type == 'enviar_dinero']
-    # Sumar todas las transacciones
-    total_sent = sum(int(transaction.amount) for transaction in sent_transactions) or 0
-
-    # Filtrar todas las transacciones recibidas por el usuario
-    received_transactions = [transaction for transaction in transactions if transaction.transaction_type == 'solicitar_dinero']
-    # Sumar todas las transacciones
-    total_received = sum(int(transaction.amount) for transaction in received_transactions) or 0
+    total_sent = sum(int(transaction.amount) for transaction in decrypted_sent_transactions) or 0
+    total_received = sum(int(transaction.amount) for transaction in decrypted_received_transactions) or 0
 
     # Obtiene el saldo actual del perfil del usuario.
     balance = user.profile.amount
+
+    transactions = decrypted_sent_transactions + decrypted_received_transactions
+    # Ordenamos por fecha de más reciente a más antigüa.
+    transactions.sort(key=lambda x: x.timestamp, reverse=True)
 
     context = {
         'user': user,
