@@ -90,26 +90,28 @@ Inicio
         {% endfor %}
     </div>
 
-    <!-- Barra Derecha -->
-    <div class="right-bar">
-        <div class="top-users">
-            <h3>Usuarios a quien seguir:</h3>
-            <ul>
-                {% for user in top_users %}
-                    <li>
-                        <a href="{% url 'profile' user %}" class="user-link">
-                            <img src="{{ user.profile.image.url }}" class="user-img"><span class="user-name">{{ user.username }}</span>
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
+            <!-- Barra Derecha -->
+            <div class="right-bar">
+                <div class="top-users">
+                    <h3>Usuarios a quien seguir:</h3>
+                    <ul>
+                        {% for user in top_users %}
+                            {% if user != request.user and user.is_authenticated %} <!-- Para que solo muestre otros users -->
+                                <li>
+                                    <a href="{% url 'profile' user %}" class="user-link">
+                                        <img src="{{ user.profile.image.url }}" class="user-img"><span class="user-name">{{ user.username }}</span>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="user-amount">
+                    <h3>Este es tu saldo acutal en la aplicación:</h3>
+                    <p>{{ user_balance }}€</p>
+                </div>
+            </div>
         </div>
-        <div class="user-amount">
-            <h3>Este es tu saldo acutal en la aplicación:</h3>
-            <p>{{ user_balance }}€</p>
-        </div>
-    </div>
-</div>
 <script>
     function setTransactionType(type) {
         document.getElementById('transaction_type').value = type;
