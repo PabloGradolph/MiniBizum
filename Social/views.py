@@ -108,8 +108,8 @@ def edit(request):
 @login_required(login_url='login')
 def profile(request, username):
     user = get_object_or_404(User, username=username)
-    encrypted_sent_transactions = Transaction.objects.filter(user=user, transaction_type='enviar_dinero')
-    encrypted_received_transactions = Transaction.objects.filter(recipient=user, transaction_type='enviar_dinero')
+    encrypted_sent_transactions = Transaction.objects.filter(user=user)
+    encrypted_received_transactions = Transaction.objects.filter(recipient=user)
     
     # Desciframos las transacciones enviadas por el usuario.
     decrypted_sent_transactions = []
@@ -131,8 +131,8 @@ def profile(request, username):
         decrypted_received_transactions.append(decrypted_transaction)
         
     # Calcula el total enviado y recibido.
-    total_sent = sum(int(transaction.amount) for transaction in decrypted_sent_transactions) or 0
-    total_received = sum(int(transaction.amount) for transaction in decrypted_received_transactions) or 0
+    total_sent = sum(int(transaction.amount) for transaction in decrypted_sent_transactions if transaction.transaction_type == 'enviar_dinero') or 0
+    total_received = sum(int(transaction.amount) for transaction in decrypted_received_transactions if transaction.transaction_type == 'enviar_dinero') or 0
 
     # Obtiene el saldo actual del perfil del usuario.
     balance = user.profile.amount

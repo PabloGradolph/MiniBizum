@@ -79,7 +79,11 @@
                         <span class="transaction-type">Recibo de {{ transaction.amount }}€ de {{ transaction.user.username }}</span>
                     {% endif %}
                 {% else %}
-                    <span class="transaction-type">Solicita {{ transaction.amount }}€ a {{ transaction.recipient.username }}</span>
+                    {% if transaction.user == user %}
+                        <span class="transaction-type">Solicitud de {{ transaction.amount }}€ a {{ transaction.recipient.username }}</span>
+                    {% elif transaction.recipient == user %}
+                        <span class="transaction-type">{{ transaction.user.username }} te solicita {{ transaction.amount }}€</span>
+                    {% endif %}
                 {% endif %}
                 <span class="transaction-message">Mensaje: {{ transaction.transaction_message }}</span>
                 <span class="transaction-timestamp">{{ transaction.timestamp|naturaltime }}</span>
