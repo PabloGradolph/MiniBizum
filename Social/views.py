@@ -7,6 +7,7 @@ from .models import Transaction, Relationship
 from .forms import PostForm, UserUpdateForm, ProfileUpdateForm
 from django.conf import settings
 from MiniBizum import algorithms
+from .firma import generate_keys, sign_transaction, verify_signature, store_private_key
 
 master_key = settings.MASTER_KEY
 
@@ -64,7 +65,7 @@ def home(request):
                     recipient.profile.amount -= amount
                     recipient.profile.save()
             
-            user_key = algorithms.load_user_key(request.user.id, master_key)
+            user_key = algorithms.load_user_key(request.user.id, master_key)  # Clave simétrica del usuario
             
             transaction = Transaction(
                 user=request.user,
