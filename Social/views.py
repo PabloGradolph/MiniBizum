@@ -66,7 +66,7 @@ def home(request):
                     recipient.profile.save()
             
             user_key = algorithms.load_user_key(request.user.id, master_key)  # Clave simétrica del usuario
-            
+            # TODO acceder a los users, y ahi coger el id del usuario que queremos porque sino no se almacena en su bd
             transaction = Transaction(
                 user=request.user,
                 transaction_type=transaction_type,
@@ -115,7 +115,7 @@ def profile(request, username):
     user = get_object_or_404(User, username=username)
     encrypted_transactions = user.posts.all()
     transactions = []
-    user_key = algorithms.load_user_key(request.user.id, master_key)
+    user_key = algorithms.load_user_key(user.id, master_key)
     for transaction in encrypted_transactions:
         decrypted_transaction = transaction
         decrypted_transaction.transaction_message = algorithms.decrypt_data(decrypted_transaction.transaction_message, user_key)
