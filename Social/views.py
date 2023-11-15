@@ -1,14 +1,13 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
-from django.db.models import Count, Sum
+from django.db.models import Count
 from django.contrib.auth.models import User
 from .models import Transaction, Relationship
 from .forms import PostForm, UserUpdateForm, ProfileUpdateForm
 from django.conf import settings
 from MiniBizum import algorithms
-from .firma import generate_keys, sign_transaction, verify_signature, store_private_key, get_user_key_path, decrypt_private_key
-from cryptography.hazmat.primitives import serialization
+from .firma import generate_keys, sign_transaction, verify_signature, get_user_key_path, decrypt_private_key
 
 master_key = settings.MASTER_KEY
 
