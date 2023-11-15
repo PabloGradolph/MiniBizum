@@ -7,6 +7,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from .forms import CustomUserCreationForm
 from .my_hasher import MyPasswordHasher
 from .algorithms import encrypt_data, generate_key, decrypt_data, store_user_key, load_user_key
+from Social.firma import generate_keys, store_private_key
 from django.conf import settings
 import re
 
@@ -73,11 +74,18 @@ def signup_view(request):
                 # Ciframos el número de teléfono y actualizamos el perfil del usuario con el mismo.
                 profile = user.profile
                 profile.phone_number = encrypt_data(phone, key)
+                
+                private_key, public_key = generate_keys()
+                # Guardamos la clave pública en el perfil del usuario
+                # Serialize the public key to a PEM string
+                profile.public_key = public_key
+                store_private_key(master_key, private_key, user.id)
                 profile.save()
 
                 # Almacenamos la clave del usuario de manera segura.
                 store_user_key(user.id, key, master_key)
 
+                
                 login(request, user)
                 return redirect('home')
                 

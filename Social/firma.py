@@ -32,13 +32,8 @@ def generate_keys():
 
     return private_pem, public_pem
 
-def sign_transaction(private_key_pem, transaction_message, amount):
+def sign_transaction(private_key, transaction_message, amount):
     # Cargar la clave privada desde su representación en bytes
-    private_key = serialization.load_pem_private_key(
-        private_key_pem,
-        password=None,
-        backend=default_backend()
-    )
     # Firmar la transacción
     concat = f"{transaction_message}{amount}"
     message = bytes(concat, 'utf-8')
@@ -87,9 +82,24 @@ def store_private_key(master_key, private_key, user_id):
     # Guardar la clave privada cifrada en el directorio /keys
     with open(f'./keys/user_{user_id}_private_key.pem', 'wb') as file:
         file.write(encrypted_private_key)
+        
+def get_user_key_path(user_id: int) -> str:
+    """
+    Genera una ruta única para el archivo que almacena la clave de cifrado del usuario.
 
-def decrypt_private_key(master_key, encrypted_private_key):
+    Args:
+        user_id (int): El ID del usuario para el que se genera la ruta.
+
+    Returns:
+        str: La ruta completa al archivo que contiene la clave de cifrado del usuario.
+    """
+    return f'./keys/user_{user_id}_private_key.pem'
+
+def decrypt_private_key(master_key, encrypted_private_key_path):
     # Desencriptar la clave privada con la clave maestra
+    with open(encrypted_private_key_path, 'rb') as file:
+        encrypted_private_key = file.read()
+    
     cipher_suite = Fernet(master_key)
     private_key_pem = cipher_suite.decrypt(encrypted_private_key)
 
@@ -97,6 +107,9 @@ def decrypt_private_key(master_key, encrypted_private_key):
     private_key = serialization.load_pem_private_key(
         private_key_pem,
         password=None,
+        backend=default_backend(),
     )
+    
+    print(private_key)
 
     return private_key
