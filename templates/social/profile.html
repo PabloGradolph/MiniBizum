@@ -67,7 +67,11 @@
 
     <!-- Centro -->
     <div class="center-bar">
-        <h2 class="profile-transactions-title">Mis Transacciones</h2>
+        {% if user == request.user %}
+            <h2 class="profile-transactions-title">Mis Transacciones</h2>
+        {% else %}
+            <h2 class="profile-transactions-title">Sus Transacciones</h2>
+        {% endif %}
         {% for transaction in transactions %}
         <div class="transaction-card">
             <!-- Transaction Info -->
