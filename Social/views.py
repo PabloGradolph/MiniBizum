@@ -100,7 +100,7 @@ def edit(request):
         p_form = ProfileUpdateForm(instance=request.user.profile)
         
     context = {'u_form': u_form, 'p_form': p_form, 'error': error}
-    return render(request, 'social/editartwo.html', context)
+    return render(request, 'social/editar.html', context)
 
 
 @login_required(login_url='login')
@@ -197,6 +197,7 @@ def unfollow(request, username: str):
     return redirect(profile_url)
 
 
+# ----------------------- Auxiliary functions that are not views ----------------------------
 def decrypt_transactions(transactions):
     """
     Decrypts a queryset of transactions for the given user.
