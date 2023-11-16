@@ -4,13 +4,16 @@ from django.contrib.auth.models import User
 
 
 class CustomUserCreationForm(UserCreationForm):
-    """Modifica el formulario de registro de usuario para que cumpla ciertos requistios especificos de nuestro
-    proyecto."""
+    """
+    A custom form for user registration that adds specific requirements for our project.
+    It modifies the default UserCreationForm to include a phone field and customizes help texts and labels.
+    """
 
     phone = forms.CharField(label='Teléfono', max_length=9, required=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Customize help texts and labels for the form fields
         self.fields['username'].help_text = 'Introduce solo letras y no más de 35 caracteres.'
         self.fields['username'].label = 'Nombre de usuario'
         self.fields['username'].validators = []

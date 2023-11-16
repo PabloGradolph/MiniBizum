@@ -13,66 +13,66 @@ KEYS_DIR = os.path.join(BASE_DIR, 'keys')
 
 def encrypt_data(data: str, key: bytes) -> bytes:
     """
-    Cifra los datos utilizando una clave de cifrado.
+    Encrypts data using an encryption key.
 
     Args:
-        data (str): Los datos a cifrar.
-        key (str): La clave de cifrado en formato base64.
+        data (str): The data to encrypt.
+        key (bytes): The encryption key in bytes format.
 
     Returns:
-        bytes: Los datos cifrados en formato base64.
+        bytes: The encrypted data in base64 format.
     """
-    # Crea un objeto Fernet con la clave de cifrado.
+    # Create a Fernet object with the encryption key.
     cipher_suite = Fernet(key)
 
-    # Cifra los datos.
+    # Encrypt the data.
     encrypted_data = cipher_suite.encrypt(data.encode())
 
-    # Convierte los datos cifrados a formato base64.
+    # Convert the encrypted data to base64 format.
     return base64.b64encode(encrypted_data)
 
 
 def decrypt_data(ciphertext: str, key: bytes) -> str:
     """
-    Descifra los datos cifrados utilizando una clave de cifrado.
+    Decrypts the encrypted data using an encryption key.
 
     Args:
-        ciphertext (str): Los datos cifrados en formato base64.
-        key (bytes): La clave de cifrado en bytes.
+        ciphertext (str): The encrypted data in base64 format.
+        key (bytes): The encryption key in bytes format.
 
     Returns:
-        str: Los datos descifrados como una cadena de caracteres.
+        str: The decrypted data as a string.
     """
-    # # Convierte el ciphertext de cadena de caracteres a bytes
+    # Convert the ciphertext from string to bytes
     ciphertext_bytes = eval(ciphertext.encode())
 
-    # Decodifica el ciphertext de base64 y conviértelo a bytes
+    # Decode the ciphertext from base64 and convert it to bytes
     ciphertext_bytes = base64.b64decode(ciphertext_bytes)
 
-    # Crea un objeto Fernet con la clave de cifrado.
+    # Create a Fernet object with the encryption key.
     fernet = Fernet(key)
 
-    # Descifra los datos y luego decodifica a una cadena de caracteres (UTF-8).
+   # Decrypt the data and then decode to a string (UTF-8).
     plaintext = fernet.decrypt(ciphertext_bytes).decode("utf-8")
     return plaintext
 
 
 def generate_key(password: str, salt: str = None) -> bytes:
     """
-    Genera una clave de cifrado a partir de la contraseña del usuario y un salt aleatorio.
+    Generates an encryption key from a user's password and a random salt.
 
     Args:
-        password (str): La contraseña del usuario en texto plano.
-        salt (str, optional): Un salt aleatorio. Si no se proporciona, se generará uno.
+        password (str): The user's plaintext password.
+        salt (str, optional): A random salt. If not provided, one will be generated.
 
     Returns:
-        bytes: La clave de cifrado.
+        bytes: The encryption key.
     """
-    # Genera un salt aleatorio si no se proporciona uno
+    # Generate a random salt if one is not provided
     if salt is None:
         salt = secrets.token_hex(16)
 
-    # Utiliza el hash de la contraseña del usuario y el salt aleatorio para derivar una clave de cifrado
+    # Use the hash of the user's password and the random salt to derive an encryption key
     hashed_password = hashlib.pbkdf2_hmac(
         hash_name="sha256",
         dklen=32,
@@ -86,56 +86,55 @@ def generate_key(password: str, salt: str = None) -> bytes:
 
 def get_user_key_path(user_id: int) -> str:
     """
-    Genera una ruta única para el archivo que almacena la clave de cifrado del usuario.
+    Generates a unique path for the file storing the user's encryption key.
 
     Args:
-        user_id (int): El ID del usuario para el que se genera la ruta.
+        user_id (int): The user's ID for whom the path is generated.
 
     Returns:
-        str: La ruta completa al archivo que contiene la clave de cifrado del usuario.
+        str: The full path to the file containing the user's encryption key.
     """
     return os.path.join(KEYS_DIR, f'user_{user_id}_key.key')
 
 
-def store_user_key(user_id: int, key: bytes, master_key: bytes):
+def store_user_key(user_id: int, key: bytes, master_key: bytes) -> None:
     """
-    Almacena la clave de cifrado en un lugar seguro, cifrando la clave con una clave maestra.
+    Stores the encryption key in a secure location, encrypting the key with a master key.
 
     Args:
-        user_id: El ID del usuario.
-        key: La clave de cifrado del usuario.
-        master_key: La clave maestra para cifrar la clave de usuario.
+        user_id (int): The user's ID.
+        key (bytes): The user's encryption key.
+        master_key (bytes): The master key to encrypt the user's key.
     """
-
-    # Genera una ruta única para la clave cifrada del usuario
+    # Generate a unique path for the user's encrypted key
     key_path = get_user_key_path(user_id)
 
-    # Cifra la clave del usuario con la clave maestra antes de almacenarla
+    # Encrypt the user's key with the master key before storing it
     cipher_suite = Fernet(master_key)
     encrypted_key = cipher_suite.encrypt(key)
 
-    # Almacena la clave cifrada en el archivo
+    # Store the encrypted key in the file
     with open(key_path, 'wb') as key_file:
         key_file.write(encrypted_key)
 
 
 def load_user_key(user_id: int, master_key: bytes) -> bytes or None:
     """
-    Carga la clave de cifrado del usuario desde su archivo y la descifra utilizando una clave maestra.
+    Loads the user's encryption key from its file and decrypts it using a master key.
 
     Args:
-        user_id (int): El ID del usuario cuya clave se va a cargar.
-        master_key (bytes): La clave maestra utilizada para descifrar la clave del usuario.
+        user_id (int): The user's ID whose key is to be loaded.
+        master_key (bytes): The master key used to decrypt the user's key.
 
     Returns:
-        bytes or None: La clave de cifrado del usuario descifrada si se encuentra, o None si no se encuentra el archivo.
+        bytes or None: The decrypted user's encryption key if found, or None if the file is not found.
     """
     key_path = get_user_key_path(user_id)
     try:
         with open(key_path, 'rb') as key_file:
             encrypted_key = key_file.read()
         
-        # Descifra la clave utilizando la clave maestra
+        # Decrypt the key using the master key
         cipher_suite = Fernet(master_key)
         key = cipher_suite.decrypt(encrypted_key)
         
