@@ -7,7 +7,7 @@ from .models import Transaction, Relationship
 from .forms import PostForm, UserUpdateForm, ProfileUpdateForm
 from django.conf import settings
 from MiniBizum import algorithms
-from .firma import generate_keys, sign_transaction, verify_signature, get_user_key_path, decrypt_private_key
+from .firma import sign_transaction, verify_signature, get_user_key_path, decrypt_private_key
 from .certificate import is_certificate_valid, get_user_public_key
 
 master_key = settings.MASTER_KEY
