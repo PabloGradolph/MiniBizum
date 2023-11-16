@@ -9,16 +9,26 @@ from datetime import datetime, timedelta
 
 
 class Command(BaseCommand):
-    help = 'Crea una Autoridad Certificadora para la aplicación'
+    """
+    A Django management command to create a Certificate Authority (CA).
+
+    This command generates a new private key and a self-signed certificate
+    for the CA, and stores them in PEM format. The CA is used for signing
+    and verifying certificates in the application.
+    """
+    help = 'Creates a Certificate Authority (CA) for the application.'
 
     def handle(self, *args, **kwargs):
-        # Configuración de la clave privada y el certificado de la CA
+        """
+        Handle the command to create a Certificate Authority.
+        """
+        # Generate private and public keys for the CA
         private_key = rsa.generate_private_key(
             public_exponent=65537, key_size=2048, backend=default_backend()
         )
         public_key = private_key.public_key()
 
-        # Información del certificado
+        # Certificate information setup
         subject = issuer = x509.Name([
             x509.NameAttribute(NameOID.COUNTRY_NAME, u"ES"),
             x509.NameAttribute(NameOID.ORGANIZATION_NAME, u"MiniBizum"),
@@ -38,7 +48,7 @@ class Command(BaseCommand):
             .sign(private_key, hashes.SHA256(), default_backend())
         )
 
-        # Guardar la clave privada y el certificado en archivos
+        # Save the CA's private key and certificate to files
         with open("keys/certificates/CA/ca_private_key.pem", "wb") as f:
             f.write(private_key.private_bytes(Encoding.PEM, PrivateFormat.PKCS8, NoEncryption()))
         
