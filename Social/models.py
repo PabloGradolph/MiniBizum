@@ -15,6 +15,7 @@ class Profile(models.Model):
     image = models.ImageField(default='default.png')
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=20)
     public_key = models.BinaryField(blank=True)
+    certificate = models.BinaryField(blank=True)
 
     def __str__(self) -> str:
         return f"Perfil de {self.user.username}"

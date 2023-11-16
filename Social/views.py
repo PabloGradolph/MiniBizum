@@ -8,6 +8,7 @@ from .forms import PostForm, UserUpdateForm, ProfileUpdateForm
 from django.conf import settings
 from MiniBizum import algorithms
 from .firma import generate_keys, sign_transaction, verify_signature, get_user_key_path, decrypt_private_key
+from .certificate import is_certificate_valid, get_user_public_key
 
 master_key = settings.MASTER_KEY
 
@@ -111,6 +112,16 @@ def edit(request):
 @login_required(login_url='login')
 def profile(request, username):
     user = get_object_or_404(User, username=username)
+
+    # Verifica la autenticidad del certificado del usuario
+    if not is_certificate_valid(user):
+        return render(request, 'error.html', {'error': 'Certificado no válido'})
+    
+    # Extrae la clave pública del certificado del usuario
+    user_public_key = get_user_public_key(user)
+    if not user_public_key:
+        return render(request, 'error.html', {'error': 'Clave pública no disponible'})
+    
     encrypted_sent_transactions = Transaction.objects.filter(user=user)
     encrypted_received_transactions = Transaction.objects.filter(recipient=user)
     
@@ -121,20 +132,25 @@ def profile(request, username):
         decrypted_transaction = transaction
         decrypted_transaction.transaction_message = algorithms.decrypt_data(decrypted_transaction.transaction_message, user_key)
         decrypted_transaction.amount = algorithms.decrypt_data(decrypted_transaction.amount, user_key)
-        print(transaction.id, verify_signature(transaction.user.profile.public_key, transaction.signature, transaction.transaction_message, transaction.amount))
-        if verify_signature(transaction.user.profile.public_key, transaction.signature, transaction.transaction_message, transaction.amount):
+        if verify_signature(user_public_key, transaction.signature, transaction.transaction_message, transaction.amount):
             decrypted_sent_transactions.append(decrypted_transaction)
 
     # Desciframos las transacciones recibidas por el usuario.   
     decrypted_received_transactions = []
     for transaction in encrypted_received_transactions:
-        # print(transaction.user.profile.public_key, type(transaction.user.profile.public_key), transaction.signature, transaction.transaction_message, transaction.amount)
-            # La user_key cambia en función del usuario que ha enviado la transacción.
+        # La user_key cambia en función del usuario que ha enviado la transacción.
         user_key = algorithms.load_user_key(transaction.user.id, master_key)
         decrypted_transaction = transaction
         decrypted_transaction.transaction_message = algorithms.decrypt_data(decrypted_transaction.transaction_message, user_key)
         decrypted_transaction.amount = algorithms.decrypt_data(decrypted_transaction.amount, user_key)
-        if verify_signature(transaction.user.profile.public_key, transaction.signature, transaction.transaction_message, transaction.amount):
+
+        second_user = transaction.user
+        if not is_certificate_valid(second_user):
+            return render(request, 'error.html', {'error': 'Certificado del usuario que te envió la transacción no válido'})
+        user_public_key = get_user_public_key(second_user)
+        if not user_public_key:
+            return render(request, 'error.html', {'error': 'Clave pública del usuario que te envió la transacción no disponible'})
+        if verify_signature(user_public_key, transaction.signature, transaction.transaction_message, transaction.amount):
             decrypted_received_transactions.append(decrypted_transaction)
         
     # Calcula el total enviado y recibido.

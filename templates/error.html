@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Error</title>
+    <!-- Añade aquí tus hojas de estilo o referencias a frameworks CSS si es necesario -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 50px;
+        }
+
+        .error-container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffcccc;
+            border: 1px solid #ff0000;
+            border-radius: 5px;
+            color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1>¡Ups! Ha ocurrido un error</h1>
+        <p>{{ error }}</p>
+        <a href="{% url 'home' %}">Volver a la página de inicio</a>
+    </div>
+</body>
+</html>
