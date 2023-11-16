@@ -14,7 +14,6 @@ class Profile(models.Model):
     bio = models.TextField(default='Hola, estoy usando MiniBizum!')
     image = models.ImageField(default='default.png')
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=20)
-    public_key = models.BinaryField(blank=True)
     certificate = models.BinaryField(blank=True)
 
     def __str__(self) -> str:

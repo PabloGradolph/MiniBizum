@@ -77,7 +77,6 @@ def signup_view(request):
                 profile.phone_number = encrypt_data(phone, key)
                 
                 private_key, public_key = generate_keys()
-                profile.public_key = public_key
 
                 ca_private_key_pem, ca_certificate_pem = load_ca_private_key_and_certificate()
                 user_certificate_pem = create_certificate_for_user(public_key, ca_private_key_pem, ca_certificate_pem, user.id, username, email, phone)
