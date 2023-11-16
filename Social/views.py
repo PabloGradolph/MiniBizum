@@ -14,6 +14,11 @@ master_key = settings.MASTER_KEY
 
 @login_required(login_url='login')
 def home(request):
+    user = get_object_or_404(User, username=request.user.username)
+    # Verifica la autenticidad del certificado del usuario
+    if not is_certificate_valid(user):
+        return render(request, 'error.html', {'error': 'Certificado no válido'})
+    
     # Desencriptamos los datos de las transacciones
     encrypted_transactions = Transaction.objects.all()
     transactions = []
@@ -22,7 +27,16 @@ def home(request):
         decrypted_transaction = transaction
         decrypted_transaction.transaction_message = algorithms.decrypt_data(decrypted_transaction.transaction_message, user_key)
         decrypted_transaction.amount = algorithms.decrypt_data(decrypted_transaction.amount, user_key)
-        transactions.append(decrypted_transaction)
+
+        # Comprobamos certificado de los usuarios para usar sus claves públicas y verificar la firma de las transacciones.
+        second_user = transaction.user
+        if not is_certificate_valid(second_user):
+            return render(request, 'error.html', {'error': 'Certificado del usuario que te envió la transacción no válido'})
+        user_public_key = get_user_public_key(second_user)
+        if not user_public_key:
+            return render(request, 'error.html', {'error': 'Clave pública del usuario que te envió la transacción no disponible'})
+        if verify_signature(user_public_key, transaction.signature, transaction.transaction_message, transaction.amount):
+            transactions.append(decrypted_transaction)
         
     user_balance = request.user.profile.amount
     top_users = User.objects.annotate(transaction_count=Count('posts')).order_by('-transaction_count')[:3]
