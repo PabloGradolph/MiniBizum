@@ -6,7 +6,6 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.exceptions import InvalidSignature
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
-import ast
 
 def generate_keys() -> (bytes, bytes):
     """

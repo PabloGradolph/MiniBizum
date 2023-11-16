@@ -3,7 +3,10 @@ from django.contrib.auth.models import User
 from .models import Profile
 
 class PostForm(forms.Form):
-    
+    """
+    Form for creating a transaction post.
+    """
+
     TRANSACTION_CHOICES = [
         ('enviar_dinero', 'Enviar dinero'),
         ('solicitar_dinero', 'Solicitar dinero'),
@@ -31,12 +34,20 @@ class PostForm(forms.Form):
         widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Cantidad de dinero'}),
     )
 
+
 class UserUpdateForm(forms.ModelForm):
+    """
+    Form for updating user information.
+    """
     class Meta:
         model = User
         fields = ['first_name', 'username']
 
+
 class ProfileUpdateForm(forms.ModelForm):
+    """
+    Form for updating user profile.
+    """
     amount_to_add = forms.DecimalField(max_digits=10, decimal_places=2, required=False, min_value=0)
     class Meta:
         model = Profile

@@ -7,8 +7,13 @@ from django.conf import settings
 from MiniBizum import algorithms
 
 
-# Modelo para los perfiles de los usuarios (añade atributos a los usuarios)
+master_key = settings.MASTER_KEY
+
+
 class Profile(models.Model):
+    """
+    Profile model that extends the User model with additional fields.
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     phone_number = models.CharField(max_length=20, unique=True, null=False, blank=False)
     bio = models.TextField(default='Hola, estoy usando MiniBizum!')
@@ -20,24 +25,34 @@ class Profile(models.Model):
         return f"Perfil de {self.user.username}"
 
     def following(self):
+        """
+        Retrieve the list of users that this user is following.
+        """
         user_ids = Relationship.objects.filter(from_user=self.user).values_list('to_user_id', flat=True)
         return User.objects.filter(id__in=user_ids)
     
     def followers(self):
+        """
+        Retrieve the list of users that follow this user.
+        """
         user_ids = Relationship.objects.filter(to_user=self.user).values_list('from_user_id', flat=True)
         return User.objects.filter(id__in=user_ids)
 
-# Perfil generado automáticamente cuando un usuario se registra.
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
+    """
+    Post-save signal to create a Profile instance for each new User instance.
+    """
     if created:
         Profile.objects.create(user=instance)
-
 post_save.connect(create_user_profile, sender=User)
 
-master_key = settings.MASTER_KEY
 
 class Transaction(models.Model):
+    """
+    Model representing a transaction between users.
+    """
     TRANSACTION_CHOICES = [
         ('enviar_dinero', 'Enviar dinero'),
         ('solicitar_dinero', 'Solicitar dinero'),
@@ -63,8 +78,10 @@ class Transaction(models.Model):
             return f"{self.user.username} solicita {self.amount}€ a {self.recipient.username}"
         
 
-
 class Relationship(models.Model):
+    """
+    Model representing a following/follower relationship between users.
+    """
     from_user = models.ForeignKey(User, related_name='relationships', on_delete=models.CASCADE)
     to_user = models.ForeignKey(User, related_name='related_to', on_delete=models.CASCADE)
 
