@@ -121,15 +121,13 @@ def profile(request, username):
         decrypted_transaction = transaction
         decrypted_transaction.transaction_message = algorithms.decrypt_data(decrypted_transaction.transaction_message, user_key)
         decrypted_transaction.amount = algorithms.decrypt_data(decrypted_transaction.amount, user_key)
-        print(transaction.id, verify_signature(transaction.user.profile.public_key, transaction.signature, transaction.transaction_message, transaction.amount))
-        if verify_signature(transaction.user.profile.public_key, transaction.signature, transaction.transaction_message, transaction.amount):
+        if verify_signature(transaction.user.profile.public_key, transaction.signature, transaction.transactioprintn_message, transaction.amount):
             decrypted_sent_transactions.append(decrypted_transaction)
 
     # Desciframos las transacciones recibidas por el usuario.   
     decrypted_received_transactions = []
     for transaction in encrypted_received_transactions:
-        # print(transaction.user.profile.public_key, type(transaction.user.profile.public_key), transaction.signature, transaction.transaction_message, transaction.amount)
-            # La user_key cambia en función del usuario que ha enviado la transacción.
+        # La user_key cambia en función del usuario que ha enviado la transacción.
         user_key = algorithms.load_user_key(transaction.user.id, master_key)
         decrypted_transaction = transaction
         decrypted_transaction.transaction_message = algorithms.decrypt_data(decrypted_transaction.transaction_message, user_key)
