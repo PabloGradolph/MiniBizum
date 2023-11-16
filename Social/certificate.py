@@ -5,7 +5,9 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
 from cryptography.exceptions import InvalidSignature
+from django.contrib.auth.models import User
 from datetime import datetime, timedelta
+from typing import Optional
 
 
 def create_certificate_for_user(user_public_pem: bytes, ca_private_key_pem: bytes, ca_certificate_pem: bytes, user_id: int, username: str, email: str, phone: str) -> bytes:
@@ -56,6 +58,7 @@ def create_certificate_for_user(user_public_pem: bytes, ca_private_key_pem: byte
         private_key=ca_private_key, algorithm=hashes.SHA256(), backend=default_backend()
     )
 
+    # Save the certificate in a file
     with open(f"keys/certificates/user_{user_id}_certificate.pem", "wb") as f:
         f.write(user_certificate.public_bytes(serialization.Encoding.PEM))
 
@@ -63,17 +66,22 @@ def create_certificate_for_user(user_public_pem: bytes, ca_private_key_pem: byte
     return user_certificate.public_bytes(serialization.Encoding.PEM)
 
 
-def load_ca_private_key_and_certificate():
+def load_ca_private_key_and_certificate() -> tuple[bytes, bytes]:
+    """
+    Load the private key and certificate of the CA from files.
+
+    Returns:
+        tuple[bytes, bytes]: A tuple containing the CA's private key and certificate in PEM format.
+    """
     with open('keys/certificates/CA/ca_private_key.pem', 'rb') as key_file:
         ca_private_key_pem = key_file.read()
-
     with open('keys/certificates/CA/ca_certificate.pem', 'rb') as cert_file:
         ca_certificate_pem = cert_file.read()
 
     return ca_private_key_pem, ca_certificate_pem
 
 
-def get_public_key_from_certificate(user_certificate_pem):
+def get_public_key_from_certificate(user_certificate_pem: bytes) -> bytes:
     """
     Extract the public key from a user's certificate.
 
@@ -91,14 +99,23 @@ def get_public_key_from_certificate(user_certificate_pem):
     return public_key
 
 
-def get_user_public_key(user):
+def get_user_public_key(user: User) -> Optional[bytes]:
+    """
+    Retrieve the public key for a given user from their certificate.
+
+    Args:
+        user (User): The Django User model instance.
+
+    Returns:
+        Optional[bytes]: The public key in PEM format, or None if the user doesn't have a certificate.
+    """
     user_certificate_pem = user.profile.certificate
     if user_certificate_pem:
         return get_public_key_from_certificate(user_certificate_pem)
     return None
 
 
-def verify_certificate(user_certificate_pem, ca_certificate_pem):
+def verify_certificate(user_certificate_pem: bytes, ca_certificate_pem: bytes) -> bool:
     """
     Verify a user's certificate against the CA's certificate.
 
@@ -112,10 +129,10 @@ def verify_certificate(user_certificate_pem, ca_certificate_pem):
     ca_certificate = x509.load_pem_x509_certificate(ca_certificate_pem, default_backend())
     user_certificate = x509.load_pem_x509_certificate(user_certificate_pem, default_backend())
 
-    # Verificar que el certificado no ha expirado
+    # Verify that the certificate has not expired
     if user_certificate.not_valid_before <= datetime.utcnow() <= user_certificate.not_valid_after:
-        # Comprobar que el certificado fue firmado por la CA
         try:
+            # Verify that the certificate was signed by the CA
             ca_public_key = ca_certificate.public_key()
             algorithm = hashes.SHA256()
             ca_public_key.verify(
@@ -130,9 +147,18 @@ def verify_certificate(user_certificate_pem, ca_certificate_pem):
     return False
 
 
-def is_certificate_valid(user):
+def is_certificate_valid(user: User) -> bool:
+    """
+    Checks if the user's certificate is valid by verifying it against the CA's certificate.
+
+    Args:
+        user (User): The Django User model instance.
+
+    Returns:
+        bool: True if the certificate is valid, False otherwise.
+    """
     user_certificate_pem = user.profile.certificate
-    _ , ca_certificate_pem = load_ca_private_key_and_certificate()
+    _, ca_certificate_pem = load_ca_private_key_and_certificate()
     if user_certificate_pem and ca_certificate_pem:
         return verify_certificate(user_certificate_pem, ca_certificate_pem)
     return False
