@@ -50,7 +50,7 @@ def home(request):
 
             # Process the transaction and handle the result
             process_transaction_result = process_transaction(request, transaction_type, recipient, transaction_message, amount, user_balance)
-            if process_transaction_result != 'success':
+            if not process_transaction_result:
                 # Display an error if the transaction processing fails
                 context = {'user_balance': user_balance, 'top_users': top_users, 'transactions': transactions, 'form': form, 'error': process_transaction_result}
                 return render(request, 'main.html', context)
@@ -305,4 +305,4 @@ def process_transaction(request: HttpRequest, transaction_type: str, recipient: 
         amount=encrypted_amount,
         signature=signature,
     )
-    return 'success'
+    return True
