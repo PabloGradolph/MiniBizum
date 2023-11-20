@@ -5,9 +5,14 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
 from cryptography.exceptions import InvalidSignature
+from cryptography.fernet import Fernet
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from typing import Optional
+from django.conf import settings
+
+
+master_key = settings.MASTER_KEY
 
 
 def create_certificate_for_user(user_public_pem: bytes, ca_private_key_pem: bytes, ca_certificate_pem: bytes, user_id: int, username: str, email: str, phone: str) -> bytes:
@@ -78,6 +83,8 @@ def load_ca_private_key_and_certificate() -> tuple[bytes, bytes]:
     with open('keys/certificates/CA/ca_certificate.pem', 'rb') as cert_file:
         ca_certificate_pem = cert_file.read()
 
+    cipher_suite = Fernet(master_key)
+    ca_private_key_pem = cipher_suite.decrypt(ca_private_key_pem)
     return ca_private_key_pem, ca_certificate_pem
 
 
