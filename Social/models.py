@@ -71,7 +71,6 @@ class Transaction(models.Model):
         ordering = ['-timestamp']
 
     def __str__(self):
-        user_key = algorithms.load_user_key(self.user.id, master_key)
         if self.transaction_type == 'enviar_dinero':
             return f"{self.user.username} envía {self.amount}€ a {self.recipient.username}"
         elif self.transaction_type == 'solicitar_dinero':

@@ -79,7 +79,19 @@ Inicio
                         <span>@{{ transaction.user.username }}</span>
                     </a>
                     <span class="time-ago">{{ transaction.timestamp|naturaltime }}</span>
-                    <p>{{ transaction }}</p>
+                    {% if transaction.transaction_type == 'enviar_dinero'%}
+                    <p>
+                        <a href="{% url 'profile' username=transaction.user.username %}">@{{ transaction.user.username }}</a>
+                        envía {{ transaction.amount }}€ a
+                        <a href="{% url 'profile' username=transaction.recipient.username %}">@{{ transaction.recipient.username }}</a>
+                    </p>
+                    {% elif transaction.transaction_type == 'solicitar_dinero'%}
+                    <p>
+                        <a href="{% url 'profile' username=transaction.user.username %}">@{{ transaction.user.username }}</a>
+                        solicita {{ transaction.amount }}€ a
+                        <a href="{% url 'profile' username=transaction.recipient.username %}">@{{ transaction.recipient.username }}</a>
+                    </p>
+                    {% endif %}
                 </div>
                 <div class="transaction-message">
                     <p>Mensaje: {{ transaction.transaction_message }}</p>
