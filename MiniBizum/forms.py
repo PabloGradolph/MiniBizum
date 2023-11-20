@@ -14,7 +14,7 @@ class CustomUserCreationForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Customize help texts and labels for the form fields
-        self.fields['username'].help_text = 'Introduce solo letras y no más de 35 caracteres.'
+        self.fields['username'].help_text = 'Introduce un máximo de 15 caracteres.'
         self.fields['username'].label = 'Nombre de usuario'
         self.fields['username'].validators = []
         self.fields['password1'].help_text = ("Su contraseña debe contener al menos 8 caracteres con letras, números y "

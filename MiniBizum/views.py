@@ -39,7 +39,7 @@ def signup_view(request):
         phone = request.POST['phone']
         
         # Custom validations
-        if len(username) > 35:
+        if len(username) > 15 or not re.match(r'^[\w.]+$', username):
             return render(request, 'logs/register.html',
                           {'form': form, 'error': 'El nombre de usuario es demasiado largo.'})
 
