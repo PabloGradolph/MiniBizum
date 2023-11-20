@@ -77,15 +77,15 @@
             <div class="transaction-body">
                 {% if transaction.transaction_type == 'enviar_dinero'%}
                     {% if transaction.user == user %}
-                        <span class="transaction-type">Envío de {{ transaction.amount }}€ a {{ transaction.recipient.username }}</span>
+                        <span class="transaction-type">Envío de {{ transaction.amount }}€ a <a href="{% url 'profile' username=transaction.recipient.username %}">@{{ transaction.recipient.username }}</a></span>
                     {% elif transaction.recipient == user %}
-                        <span class="transaction-type">Recibo de {{ transaction.amount }}€ de {{ transaction.user.username }}</span>
+                        <span class="transaction-type">Recibo de {{ transaction.amount }}€ de <a href="{% url 'profile' username=transaction.user.username %}">@{{ transaction.user.username }}</a></span>
                     {% endif %}
                 {% else %}
                     {% if transaction.user == user %}
-                        <span class="transaction-type">Solicitud de {{ transaction.amount }}€ a {{ transaction.recipient.username }}</span>
+                        <span class="transaction-type">Solicitud de {{ transaction.amount }}€ a <a href="{% url 'profile' username=transaction.recipient.username %}">@{{ transaction.recipient.username }}</a></span>
                     {% elif transaction.recipient == user %}
-                        <span class="transaction-type">{{ transaction.user.username }} te solicita {{ transaction.amount }}€</span>
+                        <span class="transaction-type"><a href="{% url 'profile' username=transaction.user.username %}">@{{ transaction.user.username }}</a> te solicita {{ transaction.amount }}€</span>
                     {% endif %}
                 {% endif %}
                 <span class="transaction-message">Mensaje: {{ transaction.transaction_message }}</span>

@@ -165,3 +165,9 @@
     font-weight: bold;
     color: #009688;
 }
+
+.transaction-body span a {
+    text-decoration: none;
+    color: #337ab7;
+    font-weight: bold;
+}
