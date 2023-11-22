@@ -15,10 +15,10 @@ def generate_keys() -> (bytes, bytes):
         Tuple[bytes, bytes]: A tuple containing the private and public keys in PEM format.
     """
 
-    # Generate a private RSA key
+    # Generate a private RSA key (d)
     private_key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
+        public_exponent=65537, # e 
+        key_size=2048, # tamaño de N (numero de 2048 bits)
         backend=default_backend()
     )
 
@@ -28,13 +28,13 @@ def generate_keys() -> (bytes, bytes):
     # Serialize the keys in PEM format
     private_pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
+        format=serialization.PrivateFormat.PKCS8, # PKCS#8 es un estandar para almacenar claves privadas
         encryption_algorithm=serialization.NoEncryption()
     )
 
     public_pem = public_key.public_bytes(
         encoding=serialization.Encoding.PEM,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
+        format=serialization.PublicFormat.SubjectPublicKeyInfo # PKCS#1 es un estandar para almacenar claves publicas
     )
 
     return private_pem, public_pem
@@ -56,12 +56,12 @@ def sign_transaction(private_key: RSAPrivateKey, transaction_message: str, amoun
     concat = f"{transaction_message}{amount}"
     message = bytes(concat, 'utf-8')
     
-    # Sign the transaction
+    # Sign the transaction with RSA-PSS
     signature = private_key.sign(
         message,
-        padding.PSS(
-            mgf=padding.MGF1(hashes.SHA256()),
-            salt_length=padding.PSS.MAX_LENGTH
+        padding.PSS( # anade aleatoriedad a la firma
+            mgf=padding.MGF1(hashes.SHA256()), # MGF1 es un algoritmo de generacion de mascara, incluye un hash
+            salt_length=padding.PSS.MAX_LENGTH # salt para que la firma sea aleatoria
         ),
         hashes.SHA256()
     )
@@ -94,7 +94,7 @@ def verify_signature(public_key_pem: bytes, signature: bytes, transaction_messag
 
     try:
         # Verify the transaction
-        public_key.verify(
+        public_key.verify( # Usamos la clave publica del usuario que ha firmado con su clave privada
             signature,
             message,
             padding.PSS(
