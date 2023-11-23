@@ -4,8 +4,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.conf import settings
-from MiniBizum import algorithms
-
 
 master_key = settings.MASTER_KEY
 
@@ -15,11 +13,13 @@ class Profile(models.Model):
     Profile model that extends the User model with additional fields.
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    phone_number = models.CharField(max_length=20, unique=True, null=False, blank=False)
+    phone_number = models.CharField(max_length=20, null=False, blank=False)
     bio = models.TextField(default='Hola, estoy usando MiniBizum!')
     image = models.ImageField(default='default.png')
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=20)
     certificate = models.BinaryField(blank=True)
+    dh_public_key = models.BinaryField(null=True)
+    encrypted_dh_private_key = models.BinaryField(null=True)
 
     def __str__(self) -> str:
         return f"Perfil de {self.user.username}"
