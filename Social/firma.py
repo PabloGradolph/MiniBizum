@@ -17,7 +17,7 @@ def generate_keys() -> (bytes, bytes):
 
     # Generate a private RSA key (d)
     private_key = rsa.generate_private_key(
-        public_exponent=65537, # e 
+        public_exponent=65537, # e=65537 es el exponente publico comun
         key_size=2048, # tamaño de N (numero de 2048 bits)
         backend=default_backend()
     )
