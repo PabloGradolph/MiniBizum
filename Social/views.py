@@ -8,8 +8,13 @@ from .models import Transaction, Relationship
 from .forms import PostForm, UserUpdateForm, ProfileUpdateForm
 from django.conf import settings
 from MiniBizum import algorithms
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
 from .firma import sign_transaction, verify_signature, get_user_key_path, decrypt_private_key
 from .certificate import is_certificate_valid, get_user_public_key
+import base64
+
 
 
 master_key = settings.MASTER_KEY
@@ -33,7 +38,7 @@ def home(request):
         return render(request, 'error.html', {'error': 'Certificado no válido'})
     
     # Decrypt transaction data and verify all signatures and certificates
-    transactions = decrypt_transactions(Transaction.objects.all())
+    transactions = decrypt_transactions(request, Transaction.objects.all())
     transactions = verify_all_signatures_and_certificates(request, transactions)
         
     user_balance = request.user.profile.amount
@@ -127,11 +132,11 @@ def profile(request, username: str):
         return render(request, 'error.html', {'error': 'Clave pública no disponible'})
     
     # Decrypt the transactions sent by the user and verify the signature and the certificate
-    decrypted_sent_transactions = decrypt_transactions(Transaction.objects.filter(user=user))
+    decrypted_sent_transactions = decrypt_transactions(request, Transaction.objects.filter(user=user))
     decrypted_sent_transactions = verify_all_signatures_and_certificates(request, decrypted_sent_transactions)
 
     # Decrypt the transactions received by the user and verify the signature and the certificate
-    decrypted_received_transactions = decrypt_transactions(Transaction.objects.filter(recipient=user))
+    decrypted_received_transactions = decrypt_transactions(request, Transaction.objects.filter(recipient=user))
     decrypted_sent_transactions = verify_all_signatures_and_certificates(request, decrypted_sent_transactions)
         
     # Calculate total amount sent and received
@@ -198,7 +203,7 @@ def unfollow(request, username: str):
 
 
 # ----------------------- Auxiliary functions that are not views ----------------------------
-def decrypt_transactions(transactions):
+def decrypt_transactions(request, transactions):
     """
     Decrypts a queryset of transactions for the given user.
 
@@ -210,12 +215,17 @@ def decrypt_transactions(transactions):
     """
     decrypted_transactions = []
     for transaction in transactions:
-        user_key = algorithms.load_user_key(transaction.user.id, master_key)
+        if not is_certificate_valid(transaction.user):
+            return render(request, 'error.html', {'error': f'Certificado del usuario {transaction.user} no válido'})
+        sender_public_key = algorithms.retrieve_public_dh_key(transaction.user)
+        dh_private_key = algorithms.retrieve_private_key(transaction.recipient, transaction.recipient.password)
+        shared_key = algorithms.get_shared_key(dh_private_key, sender_public_key)
+
         decrypted_transaction = transaction
-        decrypted_transaction.transaction_message = algorithms.decrypt_data(decrypted_transaction.transaction_message, user_key)
-        decrypted_transaction.amount = algorithms.decrypt_data(decrypted_transaction.amount, user_key)
+        decrypted_transaction.transaction_message = algorithms.decrypt_data(decrypted_transaction.transaction_message, shared_key)
+        decrypted_transaction.amount = algorithms.decrypt_data(decrypted_transaction.amount, shared_key)
         decrypted_transactions.append(decrypted_transaction)
-    
+
     return decrypted_transactions
 
 
@@ -252,18 +262,18 @@ def verify_all_signatures_and_certificates(request: HttpRequest, transactions: l
 
 def process_transaction(request: HttpRequest, transaction_type: str, recipient: str, transaction_message: str, amount: float, user_balance: float) -> str:
     """
-    Processes a new transaction posted by the user.
+    Processes a new transaction posted by the user, using Diffie-Hellman key exchange for encrypting the transaction.
 
     Args:
-        request: HttpRequest: The HTTP request object.
-        transaction_type (str): The type of transaction.
-        recipient (str): The username of the recipient.
-        transaction_message (str): The transaction message.
-        amount (float): The amount of money to be transacted.
-        user_balance (float): The current balance of the user.
+        request: HttpRequest object.
+        transaction_type (str): Type of the transaction ('enviar_dinero' or 'solicitar_dinero').
+        recipient_username (str): Username of the recipient.
+        transaction_message (str): Message associated with the transaction.
+        amount (float): Amount of money to transact.
+        user_balance (float): Current balance of the user.
 
     Returns:
-        str: A message indicating the result of the transaction processing.
+        str: Result of the transaction processing ('success' or error message).
     """
     if transaction_type == 'enviar_dinero':
         # Check if user has sufficient balance
@@ -287,10 +297,20 @@ def process_transaction(request: HttpRequest, transaction_type: str, recipient: 
         except User.DoesNotExist:
             return 'El usuario seleccionado no existe'
     
-    # Encrypt the transaction message and amount
-    user_key = algorithms.load_user_key(request.user.id, settings.MASTER_KEY)
-    encrypted_message = algorithms.encrypt_data(str(transaction_message), user_key)
-    encrypted_amount = algorithms.encrypt_data(str(amount), user_key)
+    # Generate shared DH key
+    try:
+        sender_private_key = algorithms.retrieve_private_key(request.user, request.user.password) 
+        if not is_certificate_valid(request.user):
+            return render(request, 'error.html', {'error': f'Certificado del usuario {request.user} no válido'})
+        recipient_public_key = algorithms.retrieve_public_dh_key(recipient)
+        shared_key = algorithms.get_shared_key(sender_private_key, recipient_public_key)
+        
+    except Exception as e:
+        return 'Error al generar la clave compartida'
+    
+    # Encrypt the transaction message and amount usign the shared_key
+    encrypted_message = algorithms.encrypt_data(str(transaction_message), shared_key)
+    encrypted_amount = algorithms.encrypt_data(str(amount), shared_key)
 
     # Sign the transaction
     private_key = decrypt_private_key(settings.MASTER_KEY, get_user_key_path(request.user.id))

@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import CustomUserCreationForm
 from .my_hasher import MyPasswordHasher
-from .algorithms import encrypt_data, generate_key, store_user_key
+from .algorithms import encrypt_data, generate_key, store_user_key, generate_dh_keys, store_user_keys
 from Social.firma import generate_keys, store_private_key
 from Social.certificate import create_certificate_for_user, load_ca_private_key_and_certificate
 from django.conf import settings
@@ -80,10 +80,12 @@ def signup_view(request):
                 user_certificate_pem = create_certificate_for_user(public_key, ca_private_key_pem, ca_certificate_pem, user.id, username, email, phone)
                 profile.certificate = user_certificate_pem
                 store_private_key(master_key, private_key, user.id)
-                profile.save()
 
                 # Store the user key securely
                 store_user_key(user.id, key, master_key)
+                profile.save()
+                dh_private_key, dh_public_key = generate_dh_keys()
+                store_user_keys(user, dh_private_key, dh_public_key, user.password, salt)
 
                 # Login the user
                 login(request, user)
