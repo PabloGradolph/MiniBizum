@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.db.models import Count
 from django.contrib.auth.models import User
+from django.db.models.query import QuerySet
 from django.http import HttpRequest
 from .models import Transaction, Relationship
 from .forms import PostForm, UserUpdateForm, ProfileUpdateForm
@@ -199,7 +200,7 @@ def unfollow(request, username: str):
 
 
 # ----------------------- Auxiliary functions that are not views ----------------------------
-def decrypt_transactions(request, transactions):
+def decrypt_transactions(request: HttpRequest, transactions: QuerySet) -> list:
     """
     Decrypts a queryset of transactions for the given user.
 
