@@ -8,12 +8,8 @@ from .models import Transaction, Relationship
 from .forms import PostForm, UserUpdateForm, ProfileUpdateForm
 from django.conf import settings
 from MiniBizum import algorithms
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
 from .firma import sign_transaction, verify_signature, get_user_key_path, decrypt_private_key
 from .certificate import is_certificate_valid, get_user_public_key
-import base64
 
 
 

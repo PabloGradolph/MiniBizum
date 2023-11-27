@@ -12,6 +12,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+from django.contrib.auth.models import User
 from Social.models import Profile
 
 
@@ -177,8 +178,22 @@ def load_user_key(user_id: int, master_key: bytes) -> bytes or None:
         return None
 
 
-def encrypt_private_key(private_key_pem, password, salt):
-    # Derivar una clave a partir de la contraseña
+def encrypt_private_key(private_key_pem: bytes, password: str, salt: str) -> bytes:
+    """
+    Encrypts a PEM formatted private key using a password and a salt.
+
+    This method derives a cryptographic key from the provided password and salt,
+    and then uses this key to encrypt the provided private key.
+
+    Args:
+        private_key_pem (bytes): The PEM formatted private key to be encrypted.
+        password (str): The password used for generating the encryption key.
+        salt (str): The salt used in conjunction with the password to generate the encryption key.
+
+    Returns:
+        bytes: The encrypted private key.
+    """
+    # Derive a key from the password
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
@@ -187,23 +202,49 @@ def encrypt_private_key(private_key_pem, password, salt):
     )
     key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
 
-    # Cifrar la clave privada
+    # Encrypt the private key
     f = Fernet(key)
     encrypted_private_key = f.encrypt(private_key_pem)
     return encrypted_private_key
 
 
-def store_user_keys(user, private_key, public_key, password, salt):
+
+def store_user_keys(user, private_key: DHPrivateKey, public_key: DHPublicKey, password: str, salt: str) -> None:
+    """
+    Stores a user's private and public keys in a profile, encrypting the private key.
+
+    This method takes a user's private and public keys, along with a password and salt,
+    and stores the keys in the user's profile. The private key is encrypted before storage
+    for security purposes.
+
+    Args:
+        user: The user object to which these keys belong.
+        private_key (serialization.PrivateKey): The user's private key.
+        public_key (serialization.PublicKey): The user's public key.
+        password (str): The password used for encrypting the private key.
+        salt (str): The salt used in conjunction with the password for encryption.
+
+    Returns:
+        None
+    """
+
+    # Convert private key to PEM format
     private_key_pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.PKCS8,
         encryption_algorithm=serialization.NoEncryption()
     )
+
+    # Convert public key to PEM format
     public_key_pem = public_key.public_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
+
+    # Encrypt the private key
     encrypted_private_key = encrypt_private_key(private_key_pem, password, salt)
+
+    # Retrieve and update user profile with keys
     user_profile = Profile.objects.get(user=user)
     user_profile.dh_public_key = public_key_pem
     user_profile.encrypted_dh_private_key = encrypted_private_key
@@ -211,14 +252,29 @@ def store_user_keys(user, private_key, public_key, password, salt):
 
 
 
-def retrieve_private_key(user, password: str) -> str:
-    # Obtener el hash y salt de la contraseña almacenada del usuario
+def retrieve_private_key(user: User, password: str) -> DHPrivateKey:
+    """
+    Retrieves and decrypts a user's encrypted private key using their password.
+
+    This method derives a cryptographic key from the user's password and uses it
+    to decrypt the user's stored private key. The method assumes that the user's
+    password is stored in a specific format (algorithm$hash$salt).
+
+    Args:
+        user: The user object from whom the private key is to be retrieved.
+        password (str): The password for decrypting the private key.
+
+    Returns:
+        serialization.PrivateKey: The decrypted private key.
+    """
+
+    # Retrieve the algorithm, hash, and salt from the stored user password
     algorithm, hash, stored_salt = user.password.split('$', 2)
 
-    # Convertir el salt almacenado a bytes
+    # Convert the stored salt to bytes
     salt = bytes(stored_salt.encode())
 
-    # Derivar una clave para Fernet usando el password y el salt
+    # Derive a key for Fernet using the password and salt
     key = base64.urlsafe_b64encode(PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
@@ -231,7 +287,8 @@ def retrieve_private_key(user, password: str) -> str:
     user_profile = Profile.objects.get(user=user)
     encrypted_private_key = user_profile.encrypted_dh_private_key
     private_key_pem = f.decrypt(encrypted_private_key)
-    
+
+    # Load the private key from PEM format
     private_key = serialization.load_pem_private_key(
         private_key_pem,
         password=None,
@@ -240,9 +297,24 @@ def retrieve_private_key(user, password: str) -> str:
     return private_key
 
 
-def retrieve_public_dh_key(user):
+def retrieve_public_dh_key(user: User) -> DHPublicKey:
+    """
+    Retrieves a user's public Diffie-Hellman (DH) key.
+
+    This method extracts the user's public DH key, which is stored in PEM format
+    in the user's profile, and converts it into a PublicKey object.
+
+    Args:
+        user (User): The user object from whom the public DH key is to be retrieved.
+
+    Returns:
+        serialization.PublicKey: The user's public DH key.
+    """
+
+    # Retrieve the public key in PEM format from the user's profile
     recipient_public_key_pem = user.profile.dh_public_key
 
+    # Load the public key from PEM format
     recipient_public_key = serialization.load_pem_public_key(
         recipient_public_key_pem,
         backend=default_backend()
@@ -251,14 +323,34 @@ def retrieve_public_dh_key(user):
     return recipient_public_key
 
 
-def get_shared_key(dh_private_key, sender_public_key):
+def get_shared_key(dh_private_key: DHPrivateKey, sender_public_key: DHPublicKey) -> bytes:
+    """
+    Generates a shared key using Diffie-Hellman key exchange.
+
+    This method uses a private Diffie-Hellman key and a sender's public key to
+    generate a shared secret key. This key is then processed using HKDF to derive
+    a final shared key, which is encoded in base64.
+
+    Args:
+        dh_private_key (DHPrivateKey): The private DH key for generating the shared key.
+        sender_public_key (DHPublicKey): The sender's public DH key.
+
+    Returns:
+        bytes: The derived and base64-encoded shared key.
+    """
+
+    # Perform Diffie-Hellman key exchange to get shared key
     shared_key = dh_private_key.exchange(sender_public_key)
+
+    # Derive a final shared key using HKDF
     shared_key = HKDF(
         algorithm=hashes.SHA256(),
         length=32,
         salt=None,
         info=None,
-         backend=default_backend()
+        backend=default_backend()
     ).derive(shared_key)
+
+    # Encode the shared key in base64
     shared_key = base64.urlsafe_b64encode(shared_key)
     return shared_key
