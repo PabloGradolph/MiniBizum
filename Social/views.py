@@ -297,8 +297,8 @@ def process_transaction(request: HttpRequest, transaction_type: str, recipient: 
     # Generate shared DH key
     try:
         sender_private_key = algorithms.retrieve_private_key(request.user, request.user.password) 
-        if not is_certificate_valid(request.user):
-            return render(request, 'error.html', {'error': f'Certificado del usuario {request.user} no válido'})
+        if not is_certificate_valid(recipient):
+            return render(request, 'error.html', {'error': f'Certificado del usuario {recipient} no válido'})
         recipient_public_key = algorithms.retrieve_public_dh_key(recipient)
         shared_key = algorithms.get_shared_key(sender_private_key, recipient_public_key)
         

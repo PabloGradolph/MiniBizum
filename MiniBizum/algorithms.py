@@ -127,32 +127,6 @@ def store_user_key(user_id: int, key: bytes, master_key: bytes) -> None:
         key_file.write(encrypted_key)
 
 
-def generate_dh_keys() -> (DHPrivateKey, DHPublicKey):
-    """
-    Generates a pair of Diffie-Hellman (DH) keys - private and public.
-
-    This method creates a new set of DH parameters and then generates a key pair
-    based on these parameters. The key pair consists of a private key and a corresponding 
-    public key. These keys can be used for secure key exchange in cryptographic communication.
-
-    Returns:
-        DHPrivateKey: The generated private key for DH key exchange.
-        DHPublicKey: The corresponding public key for DH key exchange.
-
-    The keys are generated with a size of 2048 bits, offering a good balance between 
-    security and performance. The generator value is set to 2, which is a common choice 
-    for DH key generation.
-    """
-    p = 0xFFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA051015728E5A8AACAA68FFFFFFFFFFFFFFFF
-    g = 2
-
-    params_numbers = dh.DHParameterNumbers(p,g)
-    parameters = params_numbers.parameters(default_backend())
-    dh_private_key = parameters.generate_private_key()
-    dh_public_key = dh_private_key.public_key()
-    return dh_private_key, dh_public_key
-
-
 def load_user_key(user_id: int, master_key: bytes) -> bytes or None:
     """
     Loads the user's encryption key from its file and decrypts it using a master key.
@@ -176,6 +150,33 @@ def load_user_key(user_id: int, master_key: bytes) -> bytes or None:
         return key
     except FileNotFoundError:
         return None
+
+
+def generate_dh_keys() -> (DHPrivateKey, DHPublicKey):
+    """
+    Generates a pair of Diffie-Hellman (DH) keys - private and public.
+
+    This method creates a new set of DH parameters and then generates a key pair
+    based on these parameters. The key pair consists of a private key and a corresponding 
+    public key. These keys can be used for secure key exchange in cryptographic communication.
+
+    Returns:
+        DHPrivateKey: The generated private key for DH key exchange.
+        DHPublicKey: The corresponding public key for DH key exchange.
+
+    The keys are generated with a size of 2048 bits, offering a good balance between 
+    security and performance. The generator value is set to 2, which is a common choice 
+    for DH key generation.
+    """
+    # Parameters: p -> large prime number of 2048 bits. g -> generator.
+    p = 0xFFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E088A67CC74020BBEA63B139B22514A08798E3404DDEF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE649286651ECE45B3DC2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F83655D23DCA3AD961C62F356208552BB9ED529077096966D670C354E4ABC9804F1746C08CA18217C32905E462E36CE3BE39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9DE2BCBF6955817183995497CEA956AE515D2261898FA051015728E5A8AACAA68FFFFFFFFFFFFFFFF
+    g = 2
+
+    params_numbers = dh.DHParameterNumbers(p,g)
+    parameters = params_numbers.parameters(default_backend())
+    dh_private_key = parameters.generate_private_key()
+    dh_public_key = dh_private_key.public_key()
+    return dh_private_key, dh_public_key
 
 
 def encrypt_private_key(private_key_pem: bytes, password: str, salt: str) -> bytes:
